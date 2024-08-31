@@ -10,10 +10,6 @@ export interface GridItemProps {
 }
 
 export function GridItem(props: GridItemProps) {
-    function onClick() {
-        props.onClick();
-    }
-
     const renderGridItem = useCallback(function() {
         if (props.field.type === FieldType.BLACK) {
             return (
@@ -41,7 +37,7 @@ export function GridItem(props: GridItemProps) {
 
 
     return (
-        <Box sx={gridItemWrapperItemStyles} onClick={onClick}>
+        <Box sx={gridItemWrapperItemStyles} onClick={props.onClick}>
             {renderGridItem()}
         </Box>
     );

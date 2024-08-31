@@ -1,10 +1,8 @@
-import * as Immutable from 'immutable';
-
 export interface Game {
     fields: Fields;
 }
 
-export type Fields = Immutable.Map<number, Immutable.Map<number, Field>>;
+export type Fields = Field[][];
 
 export interface Field {
     type: FieldType;

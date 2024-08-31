@@ -1,37 +1,68 @@
-import * as Immutable from 'immutable';
 
-import { FieldType, Game } from '../interfaces/game.ts';
+import { Fields, FieldType } from '../interfaces/game.ts';
 
-export function getStartGame(): Game {
-    const game: Game = {
-        fields: Immutable.Map(),
-    };
+export function getStartGame(): Fields {
+    const fields: Fields = [[], [], [], [], [], [], [], []];
 
     for (let y = 0; y < 8; y++) {
         for (let x = 0; x < 8; x++) {
             if (y === 3 && x === 3) {
-                game.fields = game.fields.setIn([x, y], {type: FieldType.WHITE});
+                fields[x][y] = {type: FieldType.WHITE};
                 continue;
             }
 
             if (y === 3 && x === 4) {
-                game.fields = game.fields.setIn([x, y], {type: FieldType.BLACK});
+                fields[x][y] = {type: FieldType.BLACK};
                 continue;
             }
 
             if (y === 4 && x === 3) {
-                game.fields = game.fields.setIn([x, y], {type: FieldType.BLACK});
+                fields[x][y] = {type: FieldType.BLACK};
                 continue;
             }
 
             if (y === 4 && x === 4) {
-                game.fields = game.fields.setIn([x, y], {type: FieldType.WHITE});
+                fields[x][y] = {type: FieldType.WHITE};
                 continue;
             }
 
-            game.fields = game.fields.setIn([x, y], {type: FieldType.EMPTY});
+            fields[x][y] = {type: FieldType.EMPTY};
         }
     }
 
-    return game;
+    return fields;
+}
+
+export function checkIsGameOver(fields: Fields): boolean {
+    const white: number = countWhite(fields);
+    const black: number = countBlack(fields);
+    return white + black === 64;
+}
+
+export function countWhite(fields: Fields): number {
+    let white: number = 0;
+
+    for (let y = 0; y < 8; y++) {
+        for (let x = 0; x < 8; x++) {
+            if (fields[x][y].type === FieldType.WHITE) {
+                white++;
+            }
+        }
+    }
+
+    return white;
+}
+
+export function countBlack(fields: Fields): number {
+    let black: number = 0;
+
+    for (let y = 0; y < 8; y++) {
+        for (let x = 0; x < 8; x++) {
+            if (fields[x][y].type === FieldType.BLACK) {
+                black++;
+            }
+        }
+    }
+
+    return black;
 }
