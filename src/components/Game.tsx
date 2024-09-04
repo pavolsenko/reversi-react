@@ -1,40 +1,41 @@
 import { useState } from 'react';
 import { Box, Button, Card, CardActions, CardContent, CardHeader } from '@mui/material';
 
-import { Field, FieldType } from '../interfaces/game.ts';
-import { checkIsGameOver, countBlack, countWhite, getStartGame } from '../helpers/game.ts';
+import { BLACK, Coordinates, EMPTY, Field, Player, WHITE } from '../interfaces/game.ts';
+import { checkIsGameOver, countBlack, countWhite, getLegalMoves, getStartGame } from '../helpers/game.ts';
 import { Grid } from './grid/Grid.tsx';
 import { GameOverDialog } from './GameOverDialog.tsx';
+
 import { appStyles } from '../styles.ts';
 
 export function Game() {
     const [fields, setFields] = useState<Field[][]>(getStartGame());
-    const [currentPlayer, setCurrentPlayer] = useState<FieldType>(FieldType.WHITE);
+    const [currentPlayer, setCurrentPlayer] = useState<Player>(WHITE);
     const [isGameOver, setIsGameOver] = useState<boolean>(false);
     const [whiteCount, setWhiteCount] = useState<number>(2);
     const [blackCount, setBlackCount] = useState<number>(2);
+    const [whiteLegalMoves, setWhiteLegalMoves] = useState<Coordinates[]>(getLegalMoves(fields, WHITE));
+    const [blackLegalMoves, setBlackLegalMoves] = useState<Coordinates[]>(getLegalMoves(fields, BLACK));
 
     function resetGame() {
         setFields(getStartGame());
-        setCurrentPlayer(FieldType.WHITE);
+        setCurrentPlayer(WHITE);
         setIsGameOver(false);
         setWhiteCount(2);
         setBlackCount(2);
     }
 
-    function togglePlayer() {
-        if (currentPlayer === FieldType.WHITE) {
-            setCurrentPlayer(FieldType.BLACK);
-        }
-
-        if (currentPlayer === FieldType.BLACK) {
-            setCurrentPlayer(FieldType.WHITE);
-        }
-    }
-
     function onFieldClick(x: number, y: number) {
         const gameField = fields[x][y];
-        if (gameField.type !== FieldType.EMPTY) {
+        if (gameField.type !== EMPTY) {
+            return;
+        }
+
+        if (currentPlayer === WHITE && !whiteLegalMoves.find((item: Coordinates) => item.x === x && item.y === y )) {
+            return;
+        }
+
+        if (currentPlayer === BLACK && !blackLegalMoves.find((item: Coordinates) => item.x === x && item.y === y )) {
             return;
         }
 
@@ -42,21 +43,37 @@ export function Game() {
             const newFields = fields;
             newFields[x][y] = {type: currentPlayer};
 
+            // change color of all applicable fields
+
+            const newWhiteLegalMoves = getLegalMoves(newFields, WHITE);
+            const newBlackLegalMoves = getLegalMoves(newFields, BLACK);
+
             setWhiteCount(countWhite(newFields));
             setBlackCount(countBlack(newFields));
-            setIsGameOver(checkIsGameOver(newFields));
+            setIsGameOver(checkIsGameOver(newFields, newWhiteLegalMoves, newBlackLegalMoves));
+
+            if (currentPlayer === WHITE && newBlackLegalMoves.length > 0) {
+                setCurrentPlayer(BLACK);
+            }
+
+            if (currentPlayer === BLACK && newWhiteLegalMoves.length > 0) {
+                setCurrentPlayer(WHITE);
+            }
+
+            setWhiteLegalMoves(getLegalMoves(fields, WHITE));
+            setBlackLegalMoves(getLegalMoves(fields, BLACK));
 
             return newFields;
         });
-
-        togglePlayer();
     }
 
-    function onModalClose() {
+    function onDialogClose() {
         setIsGameOver(false);
     }
 
     function getSubHeader() {
+        console.log('white', whiteLegalMoves);
+        console.log('black', blackLegalMoves);
         return 'White ' + whiteCount + ':' + blackCount + ' Black | Next turn: ' + currentPlayer.toUpperCase();
     }
 
@@ -75,7 +92,7 @@ export function Game() {
             </Box>
             <GameOverDialog
                 isGameOver={isGameOver}
-                onCloseClick={onModalClose}
+                onCloseClick={onDialogClose}
                 onResetClick={resetGame}
                 whiteCount={whiteCount}
                 blackCount={blackCount}

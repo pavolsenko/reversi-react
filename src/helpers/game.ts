@@ -1,5 +1,4 @@
-
-import { Fields, FieldType } from '../interfaces/game.ts';
+import { BLACK, Coordinates, EMPTY, Fields, Player, WHITE } from '../interfaces/game.ts';
 
 export function getStartGame(): Fields {
     const fields: Fields = [[], [], [], [], [], [], [], []];
@@ -7,36 +6,36 @@ export function getStartGame(): Fields {
     for (let y = 0; y < 8; y++) {
         for (let x = 0; x < 8; x++) {
             if (y === 3 && x === 3) {
-                fields[x][y] = {type: FieldType.WHITE};
+                fields[x][y] = {type: WHITE};
                 continue;
             }
 
             if (y === 3 && x === 4) {
-                fields[x][y] = {type: FieldType.BLACK};
+                fields[x][y] = {type: BLACK};
                 continue;
             }
 
             if (y === 4 && x === 3) {
-                fields[x][y] = {type: FieldType.BLACK};
+                fields[x][y] = {type: BLACK};
                 continue;
             }
 
             if (y === 4 && x === 4) {
-                fields[x][y] = {type: FieldType.WHITE};
+                fields[x][y] = {type: WHITE};
                 continue;
             }
 
-            fields[x][y] = {type: FieldType.EMPTY};
+            fields[x][y] = {type: EMPTY};
         }
     }
 
     return fields;
 }
 
-export function checkIsGameOver(fields: Fields): boolean {
+export function checkIsGameOver(fields: Fields, whiteLegalMoves: Coordinates[], blackLegalMoves: Coordinates[]): boolean {
     const white: number = countWhite(fields);
     const black: number = countBlack(fields);
-    return white + black === 64;
+    return white + black === 64 || (whiteLegalMoves.length === 0 && blackLegalMoves.length === 0);
 }
 
 export function countWhite(fields: Fields): number {
@@ -44,7 +43,7 @@ export function countWhite(fields: Fields): number {
 
     for (let y = 0; y < 8; y++) {
         for (let x = 0; x < 8; x++) {
-            if (fields[x][y].type === FieldType.WHITE) {
+            if (fields[x][y].type === WHITE) {
                 white++;
             }
         }
@@ -58,11 +57,43 @@ export function countBlack(fields: Fields): number {
 
     for (let y = 0; y < 8; y++) {
         for (let x = 0; x < 8; x++) {
-            if (fields[x][y].type === FieldType.BLACK) {
+            if (fields[x][y].type === BLACK) {
                 black++;
             }
         }
     }
 
     return black;
+}
+
+export function getLegalMoves(fields: Fields, player: Player): Coordinates[] {
+    const result: Coordinates[] = [];
+
+    for (let y = 0; y < 8; y++) {
+        for (let x = 0; x < 8; x++) {
+            if (fields[x][y].type !== EMPTY) {
+                continue;
+            }
+
+            let isMovePossible = false;
+            let southCounter = y + 2;
+            while (southCounter < 8) {
+                if (fields[x][southCounter]?.type !== EMPTY || fields[x][southCounter]?.type === BLACK) {
+                    isMovePossible = true;
+                    break;
+                }
+                southCounter++
+            }
+
+            if (fields[x][y + 1]?.type !== EMPTY && fields[x][y + 1]?.type !== player && isMovePossible) {
+                result.push({x, y});
+                continue;
+            }
+
+            // check for all other directions
+
+        }
+    }
+
+    return result;
 }
