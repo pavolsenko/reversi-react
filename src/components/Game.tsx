@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Box, Button, Card, CardActions, CardContent, CardHeader } from '@mui/material';
 
-import { BLACK, Coordinates, EMPTY, Field, Player, WHITE } from '../interfaces/game.ts';
-import { checkIsGameOver, countBlack, countWhite, getLegalMoves, getStartGame } from '../helpers/game.ts';
+import { BLACK, EMPTY, Field, LegalMove, Player, WHITE } from '../interfaces/game';
+import { checkIsGameOver, countBlack, countWhite, getLegalMoves, getStartGame } from '../helpers/game';
 import { Grid } from './grid/Grid.tsx';
 import { GameOverDialog } from './GameOverDialog.tsx';
 
-import { appStyles } from '../styles.ts';
+import { appStyles } from '../styles';
 
 export function Game() {
     const [fields, setFields] = useState<Field[][]>(getStartGame());
@@ -14,8 +14,8 @@ export function Game() {
     const [isGameOver, setIsGameOver] = useState<boolean>(false);
     const [whiteCount, setWhiteCount] = useState<number>(2);
     const [blackCount, setBlackCount] = useState<number>(2);
-    const [whiteLegalMoves, setWhiteLegalMoves] = useState<Coordinates[]>(getLegalMoves(fields, WHITE));
-    const [blackLegalMoves, setBlackLegalMoves] = useState<Coordinates[]>(getLegalMoves(fields, BLACK));
+    const [whiteLegalMoves, setWhiteLegalMoves] = useState<LegalMove[]>(getLegalMoves(fields, WHITE));
+    const [blackLegalMoves, setBlackLegalMoves] = useState<LegalMove[]>(getLegalMoves(fields, BLACK));
 
     function resetGame() {
         setFields(getStartGame());
@@ -31,19 +31,113 @@ export function Game() {
             return;
         }
 
-        if (currentPlayer === WHITE && !whiteLegalMoves.find((item: Coordinates) => item.x === x && item.y === y )) {
+        const whiteMoves: LegalMove[] = whiteLegalMoves.filter(function(item: LegalMove) {
+            return item.coordinates.x === x && item.coordinates.y === y;
+        });
+        if (currentPlayer === WHITE && whiteMoves.length === 0) {
             return;
         }
 
-        if (currentPlayer === BLACK && !blackLegalMoves.find((item: Coordinates) => item.x === x && item.y === y )) {
+        const blackMoves: LegalMove[] = blackLegalMoves.filter(function(item: LegalMove) {
+            return item.coordinates.x === x && item.coordinates.y === y;
+        });
+        if (currentPlayer === BLACK && blackMoves.length === 0) {
             return;
         }
 
         setFields(() => {
             const newFields = fields;
+            let checkX: number;
+            let checkY: number;
             newFields[x][y] = {type: currentPlayer};
 
-            // change color of all applicable fields
+            const legalMoves = currentPlayer === WHITE ? whiteMoves : blackMoves;
+
+            legalMoves.forEach(function(legalMove: LegalMove) {
+                if (legalMove.direction === 'N') {
+                    checkX = x;
+                    checkY = y - 1;
+                    while (checkY >= 0 && newFields[checkX][checkY].type !== 'empty' && newFields[checkX][checkY].type !== currentPlayer) {
+                        newFields[checkX][checkY].type = currentPlayer;
+                        checkY--;
+                    }
+                    return;
+                }
+
+                if (legalMove.direction === 'NE') {
+                    checkX = x + 1;
+                    checkY = y - 1;
+                    while (checkY >= 0 && checkX < 8 && newFields[checkX][checkY].type !== 'empty' && newFields[checkX][checkY].type !== currentPlayer) {
+                        newFields[checkX][checkY].type = currentPlayer;
+                        checkX++;
+                        checkY--;
+                    }
+                    return;
+                }
+
+                if (legalMove.direction === 'E') {
+                    checkX = x + 1;
+                    checkY = y;
+                    while (checkX < 8 && newFields[checkX][checkY].type !== 'empty' && newFields[checkX][checkY].type !== currentPlayer) {
+                        newFields[checkX][checkY].type = currentPlayer;
+                        checkX++;
+                    }
+                    return;
+                }
+
+                if (legalMove.direction === 'SE') {
+                    checkX = x + 1;
+                    checkY = y + 1;
+                    while (checkY < 8 && checkX < 8 && newFields[checkX][checkY].type !== 'empty' && newFields[checkX][checkY].type !== currentPlayer) {
+                        newFields[checkX][checkY].type = currentPlayer;
+                        checkX++;
+                        checkY++;
+                    }
+                    return;
+                }
+
+                if (legalMove.direction === 'S') {
+                    checkX = x;
+                    checkY = y + 1;
+                    while (checkY < 8 && newFields[checkX][checkY].type !== 'empty' && newFields[checkX][checkY].type !== currentPlayer) {
+                        newFields[checkX][checkY].type = currentPlayer;
+                        checkY++;
+                    }
+                    return;
+                }
+
+                if (legalMove.direction === 'SW') {
+                    checkX = x - 1;
+                    checkY = y + 1;
+                    while (checkX >= 0 && checkY < 8 && newFields[checkX][checkY].type !== 'empty' && newFields[checkX][checkY].type !== currentPlayer) {
+                        newFields[checkX][checkY].type = currentPlayer;
+                        checkX--;
+                        checkY++;
+                    }
+                    return;
+                }
+
+                if (legalMove.direction === 'W') {
+                    checkX = x - 1;
+                    checkY = y;
+                    while (checkX >= 0 && newFields[checkX][checkY].type !== 'empty' && newFields[checkX][checkY].type !== currentPlayer) {
+                        newFields[checkX][checkY].type = currentPlayer;
+                        checkX--;
+                    }
+                    return;
+                }
+
+                if (legalMove.direction === 'NW') {
+                    checkX = x - 1;
+                    checkY = y - 1;
+                    while (checkX >= 0 && checkY >= 0 && newFields[checkX][checkY].type !== 'empty' && newFields[checkX][checkY].type !== currentPlayer) {
+                        newFields[checkX][checkY].type = currentPlayer;
+                        checkX--;
+                        checkY--;
+                    }
+                    return;
+                }
+            });
 
             const newWhiteLegalMoves = getLegalMoves(newFields, WHITE);
             const newBlackLegalMoves = getLegalMoves(newFields, BLACK);

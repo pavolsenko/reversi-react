@@ -1,10 +1,10 @@
 import { ReactNode } from 'react';
 import { Box } from '@mui/material';
 
-import { Fields } from '../../interfaces/game.ts';
+import { Fields } from '../../interfaces/game';
 import { GridItem } from './GridItem.tsx';
 
-import { gridStyles } from './style.ts';
+import { gridStyles } from './style';
 
 export interface GridProps {
     fields: Fields;

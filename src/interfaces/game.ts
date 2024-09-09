@@ -17,3 +17,10 @@ export interface Coordinates {
     x: number;
     y: number;
 }
+
+export type Direction = 'N' | 'NE' | 'E' | 'SE' | 'S' | 'SW' | 'W' | 'NW';
+
+export interface LegalMove {
+    coordinates: Coordinates;
+    direction: Direction;
+}

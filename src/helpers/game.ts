@@ -1,4 +1,4 @@
-import { BLACK, Coordinates, EMPTY, Fields, Player, WHITE } from '../interfaces/game.ts';
+import { BLACK, EMPTY, Fields, LegalMove, Player, WHITE } from '../interfaces/game';
 
 export function getStartGame(): Fields {
     const fields: Fields = [[], [], [], [], [], [], [], []];
@@ -32,7 +32,7 @@ export function getStartGame(): Fields {
     return fields;
 }
 
-export function checkIsGameOver(fields: Fields, whiteLegalMoves: Coordinates[], blackLegalMoves: Coordinates[]): boolean {
+export function checkIsGameOver(fields: Fields, whiteLegalMoves: LegalMove[], blackLegalMoves: LegalMove[]): boolean {
     const white: number = countWhite(fields);
     const black: number = countBlack(fields);
     return white + black === 64 || (whiteLegalMoves.length === 0 && blackLegalMoves.length === 0);
@@ -66,8 +66,8 @@ export function countBlack(fields: Fields): number {
     return black;
 }
 
-export function getLegalMoves(fields: Fields, player: Player): Coordinates[] {
-    const result: Coordinates[] = [];
+export function getLegalMoves(fields: Fields, player: Player): LegalMove[] {
+    const result: LegalMove[] = [];
 
     for (let y = 0; y < 8; y++) {
         for (let x = 0; x < 8; x++) {
@@ -86,7 +86,10 @@ export function getLegalMoves(fields: Fields, player: Player): Coordinates[] {
             }
 
             if (fields[x][y + 1]?.type !== EMPTY && fields[x][y + 1]?.type !== player && isMovePossible) {
-                result.push({x, y});
+                result.push({
+                    coordinates: {x, y},
+                    direction: 'S',
+                });
                 continue;
             }
 

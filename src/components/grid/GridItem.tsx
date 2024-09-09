@@ -1,7 +1,7 @@
 import { Box } from '@mui/material';
 
-import { BLACK, Field, WHITE } from '../../interfaces/game.ts';
-import { blackGridItemStyles, gridItemWrapperItemStyles, whiteGridItemStyles } from './style.ts';
+import { BLACK, Field, WHITE } from '../../interfaces/game';
+import { blackGridItemStyles, gridItemWrapperItemStyles, whiteGridItemStyles } from './style';
 import { useCallback } from 'react';
 
 export interface GridItemProps {
