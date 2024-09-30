@@ -75,28 +75,32 @@ export function getLegalMoves(fields: Fields, player: Player): LegalMove[] {
                 continue;
             }
 
-            let isMovePossible = false;
-            let southCounter = y + 2;
-            while (southCounter < 8) {
-                if (fields[x][southCounter]?.type !== EMPTY || fields[x][southCounter]?.type === BLACK) {
-                    isMovePossible = true;
-                    break;
+            if (y < 6) {
+                const legalMoveSouth = getLegalMoveSouth(fields, player, x, y);
+                if (legalMoveSouth) {
+                    result.push(legalMoveSouth);
                 }
-                southCounter++
             }
-
-            if (fields[x][y + 1]?.type !== EMPTY && fields[x][y + 1]?.type !== player && isMovePossible) {
-                result.push({
-                    coordinates: {x, y},
-                    direction: 'S',
-                });
-                continue;
-            }
-
-            // check for all other directions
 
         }
     }
 
     return result;
+}
+
+export function getLegalMoveSouth(fields: Fields, player: Player, x: number, y: number): LegalMove | undefined {
+    if (fields[x][y + 1].type !== player && fields[x][y + 1].type !== EMPTY) {
+        return;
+    }
+
+    let southCounter = y + 2;
+    while (southCounter < 8) {
+        if (fields[x][southCounter]?.type === player) {
+            return {
+                coordinates: {x, y},
+                direction: 'S',
+            };
+        }
+        southCounter++;
+    }
 }

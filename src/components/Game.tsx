@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Box, Button, Card, CardActions, CardContent, CardHeader } from '@mui/material';
+import { basicGame2 } from '../helpers/__mocks__/fields';
 
 import { BLACK, EMPTY, Field, LegalMove, Player, WHITE } from '../interfaces/game';
 import { checkIsGameOver, countBlack, countWhite, getLegalMoves, getStartGame } from '../helpers/game';
@@ -9,7 +10,7 @@ import { GameOverDialog } from './GameOverDialog.tsx';
 import { appStyles } from '../styles';
 
 export function Game() {
-    const [fields, setFields] = useState<Field[][]>(getStartGame());
+    const [fields, setFields] = useState<Field[][]>(basicGame2);
     const [currentPlayer, setCurrentPlayer] = useState<Player>(WHITE);
     const [isGameOver, setIsGameOver] = useState<boolean>(false);
     const [whiteCount, setWhiteCount] = useState<number>(2);
