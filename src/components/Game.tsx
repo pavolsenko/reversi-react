@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Box, Button, Card, CardActions, CardContent, CardHeader } from '@mui/material';
 import { basicGame2 } from '../helpers/__mocks__/fields';
 
@@ -18,15 +18,19 @@ export function Game() {
     const [whiteLegalMoves, setWhiteLegalMoves] = useState<LegalMove[]>(getLegalMoves(fields, WHITE));
     const [blackLegalMoves, setBlackLegalMoves] = useState<LegalMove[]>(getLegalMoves(fields, BLACK));
 
+    console.log(whiteLegalMoves);
+
     function resetGame() {
         setFields(getStartGame());
         setCurrentPlayer(WHITE);
         setIsGameOver(false);
         setWhiteCount(2);
         setBlackCount(2);
+        setWhiteLegalMoves(getLegalMoves(getStartGame(), WHITE));
+        setBlackLegalMoves(getLegalMoves(getStartGame(), BLACK));
     }
 
-    function onFieldClick(x: number, y: number) {
+    const onFieldClick = useCallback((x: number, y: number) => {
         const gameField = fields[x][y];
         if (gameField.type !== EMPTY) {
             return;
@@ -50,7 +54,7 @@ export function Game() {
             const newFields = fields;
             let checkX: number;
             let checkY: number;
-            newFields[x][y] = {type: currentPlayer};
+            newFields[x][y] = { type: currentPlayer };
 
             const legalMoves = currentPlayer === WHITE ? whiteMoves : blackMoves;
 
@@ -160,15 +164,24 @@ export function Game() {
 
             return newFields;
         });
-    }
+    }, [fields, whiteLegalMoves, blackLegalMoves, currentPlayer]);
+
+    useEffect(() => {
+        if(currentPlayer === BLACK) {
+            const randomMove = blackLegalMoves[Math.floor(Math.random() * blackLegalMoves.length)];
+            if (randomMove) {
+                onFieldClick(randomMove.coordinates.x, randomMove.coordinates.y);
+            } else {
+                setCurrentPlayer(WHITE);
+            }
+        }
+    }, [blackLegalMoves, currentPlayer, onFieldClick]);
 
     function onDialogClose() {
         setIsGameOver(false);
     }
 
     function getSubHeader() {
-        console.log('white', whiteLegalMoves);
-        console.log('black', blackLegalMoves);
         return 'White ' + whiteCount + ':' + blackCount + ' Black | Next turn: ' + currentPlayer.toUpperCase();
     }
 

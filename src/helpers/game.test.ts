@@ -34,14 +34,104 @@ describe('game helper:', () => {
         it('should get legal moves', () => {
             const legalMoves: LegalMove[] = [
                 {
-                    coordinates: { x: 2, y: 0 },
-                    direction: 'S',
-               },
-                {
-                    coordinates: { x: 3, y: 0 },
-                    direction: 'S',
+                    coordinates: {
+                        x: 1,
+                        y: 0
+                    },
+                    direction: "SE"
                 },
-           ];
+                {
+                    coordinates: {
+                        x: 2,
+                        y: 0
+                    },
+                    direction: "SE"
+                },
+                {
+                    coordinates: {
+                        x: 2,
+                        y: 0
+                    },
+                    direction: "S"
+                },
+                {
+                    coordinates: {
+                        x: 3,
+                        y: 0
+                    },
+                    direction: "SE"
+                },
+                {
+                    coordinates: {
+                        x: 3,
+                        y: 0
+                    },
+                    direction: "S"
+                },
+                {
+                    coordinates: {
+                        x: 4,
+                        y: 0
+                    },
+                    direction: "SW"
+                },
+                {
+                    coordinates: {
+                        x: 5,
+                        y: 0
+                    },
+                    direction: "SW"
+                },
+                {
+                    coordinates: {
+                        x: 1,
+                        y: 1
+                    },
+                    direction: "E"
+                },
+                {
+                    coordinates: {
+                        x: 5,
+                        y: 4
+                    },
+                    direction: "W"
+                },
+                {
+                    coordinates: {
+                        x: 5,
+                        y: 4
+                    },
+                    direction: "NW"
+                },
+                {
+                    coordinates: {
+                        x: 2,
+                        y: 5
+                    },
+                    direction: "NE"
+                },
+                {
+                    coordinates: {
+                        x: 3,
+                        y: 5
+                    },
+                    direction: "N"
+                },
+                {
+                    coordinates: {
+                        x: 3,
+                        y: 5
+                    },
+                    direction: "NE"
+                },
+                {
+                    coordinates: {
+                        x: 5,
+                        y: 5
+                    },
+                    direction: "NW"
+                }
+            ];
 
             expect(getLegalMoves(basicGame2, WHITE)).toStrictEqual(legalMoves);
         });
