@@ -164,20 +164,53 @@ export function useGame(): UseGame {
             return;
         }
 
-        const randomMove = blackLegalMoves[Math.floor(Math.random() * blackLegalMoves.length)];
-        if (!randomMove) {
+        let blackMove: LegalMove | null = null;
+        for (let i = 0; i < blackLegalMoves.length; i++) {
+            const newMove = blackLegalMoves[i];
+
+            if (newMove.coordinates.x === 0 && newMove.coordinates.y === 0) {
+                blackMove = newMove;
+                break;
+            }
+
+            if (newMove.coordinates.x === 7 && newMove.coordinates.y === 0) {
+                blackMove = newMove;
+                break;
+            }
+
+            if (newMove.coordinates.x === 0 && newMove.coordinates.y === 7) {
+                blackMove = newMove;
+                break;
+            }
+
+            if (newMove.coordinates.x === 7 && newMove.coordinates.y === 7) {
+                blackMove = newMove;
+                break;
+            }
+
+            if (newMove.coordinates.x === 0 || newMove.coordinates.y === 0 || newMove.coordinates.x === 7 || newMove.coordinates.y === 7) {
+                blackMove = newMove;
+                break;
+            }
+        }
+
+        if (!blackMove) {
+            blackMove = blackLegalMoves[Math.floor(Math.random() * blackLegalMoves.length)];
+        }
+
+        if (!blackMove) {
             setCurrentPlayer(WHITE);
             return;
         }
 
         setTimeout(function () {
-            onMove(BLACK, randomMove.coordinates.x, randomMove.coordinates.y);
+            onMove(BLACK, blackMove.coordinates.x, blackMove.coordinates.y);
             if (whiteLegalMoves.length > 0) {
                 setCurrentPlayer(WHITE);
             }
         }, 1000);
 
-    }, [fields, blackLegalMoves, currentPlayer, onMove]);
+    }, [fields, blackLegalMoves, whiteLegalMoves.length, currentPlayer, onMove]);
 
     useEffect(() => {
         setWhiteCount(countWhite(fields));

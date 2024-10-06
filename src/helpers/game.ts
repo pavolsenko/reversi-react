@@ -132,7 +132,11 @@ export function getLegalMoveNorth(fields: Fields, player: Player, x: number, y: 
 
     let counterY = y - 2;
     while (counterY >= 0) {
-        if (fields[x][counterY]?.type === player) {
+        if (fields[x][counterY].type === EMPTY) {
+            return null;
+        }
+
+        if (fields[x][counterY].type === player) {
             return {
                 coordinates: { x, y },
                 direction: 'N',
@@ -156,7 +160,11 @@ export function getLegalMoveNorthEast(fields: Fields, player: Player, x: number,
     let counterX = x + 2;
     let counterY = y - 2;
     while (counterX < 8 && counterY >= 0) {
-        if (fields[counterX][counterY]?.type === player) {
+        if (fields[counterX][counterY].type === EMPTY) {
+            return null;
+        }
+
+        if (fields[counterX][counterY].type === player) {
             return {
                 coordinates: { x, y },
                 direction: 'NE',
@@ -180,7 +188,11 @@ export function getLegalMoveEast(fields: Fields, player: Player, x: number, y: n
 
     let counterX = x + 2;
     while (counterX < 8) {
-        if (fields[counterX][y]?.type === player) {
+        if (fields[counterX][y].type === EMPTY) {
+            return null;
+        }
+
+        if (fields[counterX][y].type === player) {
             return {
                 coordinates: { x, y },
                 direction: 'E',
@@ -204,7 +216,11 @@ export function getLegalMoveSouthEast(fields: Fields, player: Player, x: number,
     let counterX = x + 2;
     let counterY = y + 2;
     while (counterX < 8 && counterY < 8) {
-        if (fields[counterX][counterY]?.type === player) {
+        if (fields[counterX][counterY].type === EMPTY) {
+            return null;
+        }
+
+        if (fields[counterX][counterY].type === player) {
             return {
                 coordinates: { x, y },
                 direction: 'SE',
@@ -228,7 +244,11 @@ export function getLegalMoveSouth(fields: Fields, player: Player, x: number, y: 
 
     let counterY = y + 2;
     while (counterY < 8) {
-        if (fields[x][counterY]?.type === player) {
+        if (fields[x][counterY].type === EMPTY) {
+            return null;
+        }
+
+        if (fields[x][counterY].type === player) {
             return {
                 coordinates: { x, y },
                 direction: 'S',
@@ -252,7 +272,11 @@ export function getLegalMoveSouthWest(fields: Fields, player: Player, x: number,
     let counterX = x - 2;
     let counterY = y + 2;
     while (counterX >= 0 && counterY < 8) {
-        if (fields[counterX][counterY]?.type === player) {
+        if (fields[counterX][counterY].type === EMPTY) {
+            return null;
+        }
+
+        if (fields[counterX][counterY].type === player) {
             return {
                 coordinates: { x, y },
                 direction: 'SW',
@@ -276,7 +300,11 @@ export function getLegalMoveWest(fields: Fields, player: Player, x: number, y: n
 
     let counterX = x - 2;
     while (counterX >= 0) {
-        if (fields[counterX][y]?.type === player) {
+        if (fields[counterX][y].type === EMPTY) {
+            return null;
+        }
+
+        if (fields[counterX][y].type === player) {
             return {
                 coordinates: { x, y },
                 direction: 'W',
@@ -300,7 +328,11 @@ export function getLegalMoveNorthWest(fields: Fields, player: Player, x: number,
     let counterX = x - 2;
     let counterY = y - 2;
     while (counterX >= 0 && counterY >= 0) {
-        if (fields[counterX][counterY]?.type === player) {
+        if (fields[counterX][counterY].type === EMPTY) {
+            return null;
+        }
+
+        if (fields[counterX][counterY].type === player) {
             return {
                 coordinates: { x, y },
                 direction: 'NW',
