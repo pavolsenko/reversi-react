@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Box } from '@mui/material';
+import { Box, useTheme } from '@mui/material';
 
 import { Fields } from '../../interfaces/game';
 import { GridItem } from './GridItem.tsx';
@@ -12,6 +12,8 @@ export interface GridProps {
 }
 
 export function Grid(props: GridProps) {
+    const theme = useTheme();
+
     function onClick(x: number, y: number) {
         return function() {
             props.onFieldClick(x, y);
@@ -37,7 +39,7 @@ export function Grid(props: GridProps) {
     }
 
     return (
-        <Box sx={gridStyles}>
+        <Box sx={gridStyles(theme)}>
             {renderGridItems()}
         </Box>
     );

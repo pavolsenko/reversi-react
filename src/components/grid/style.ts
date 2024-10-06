@@ -1,12 +1,18 @@
-import { SxProps } from '@mui/material';
+import { SxProps, Theme } from '@mui/material';
 
-export const gridStyles: SxProps = {
+export const gridStyles = (theme: Theme): SxProps => ({
     display: 'grid',
     gridTemplateColumns: 'repeat(8, 60px)',
     gridTemplateRows: 'repeat(8, 60px)',
     gap: '5px',
     paddingTop: '20px',
-}
+
+    [theme.breakpoints.down('sm')]: {
+        gridTemplateColumns: 'repeat(8, 35px)',
+        gridTemplateRows: 'repeat(8, 35px)',
+        gap: '2px',
+    },
+});
 
 export const gridItemWrapperItemStyles: SxProps = {
     backgroundColor: '#dddddd',
