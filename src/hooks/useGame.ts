@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { checkIsGameOver, countBlack, countWhite, getLegalMoves, getStartGame } from '../helpers/game';
+import { checkIsGameOver, countFields, getLegalMoves, getStartGame } from '../helpers/game';
 
 import { BLACK, EMPTY, Field, Fields, LegalMove, Player, WHITE } from '../interfaces/game';
 
@@ -213,8 +213,8 @@ export function useGame(): UseGame {
     }, [fields, blackLegalMoves, whiteLegalMoves.length, currentPlayer, onMove]);
 
     useEffect(() => {
-        setWhiteCount(countWhite(fields));
-        setBlackCount(countBlack(fields));
+        setWhiteCount(countFields(fields, WHITE));
+        setBlackCount(countFields(fields, BLACK));
         setIsGameOver(checkIsGameOver(fields, whiteLegalMoves, blackLegalMoves));
     }, [fields, whiteLegalMoves, blackLegalMoves]);
 

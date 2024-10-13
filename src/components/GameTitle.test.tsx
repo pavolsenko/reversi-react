@@ -1,6 +1,6 @@
 import { render } from '@testing-library/react';
 
-import { WHITE } from '../../interfaces/game';
+import { WHITE } from '../interfaces/game';
 import { GameTitle } from './GameTitle';
 
 describe('<GameTitle/> component:', () => {

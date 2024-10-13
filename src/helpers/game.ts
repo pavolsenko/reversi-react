@@ -33,37 +33,23 @@ export function getStartGame(): Fields {
 }
 
 export function checkIsGameOver(fields: Fields, whiteLegalMoves: LegalMove[], blackLegalMoves: LegalMove[]): boolean {
-    const white: number = countWhite(fields);
-    const black: number = countBlack(fields);
+    const white: number = countFields(fields, WHITE);
+    const black: number = countFields(fields, BLACK);
     return white + black === 64 || (whiteLegalMoves.length === 0 && blackLegalMoves.length === 0);
 }
 
-export function countWhite(fields: Fields): number {
-    let white: number = 0;
+export function countFields(fields: Fields, player: Player): number {
+    let count: number = 0;
 
     for (let y = 0; y < 8; y++) {
         for (let x = 0; x < 8; x++) {
-            if (fields[x][y].type === WHITE) {
-                white++;
+            if (fields[x][y].type === player) {
+                count++;
             }
         }
     }
 
-    return white;
-}
-
-export function countBlack(fields: Fields): number {
-    let black: number = 0;
-
-    for (let y = 0; y < 8; y++) {
-        for (let x = 0; x < 8; x++) {
-            if (fields[x][y].type === BLACK) {
-                black++;
-            }
-        }
-    }
-
-    return black;
+    return count;
 }
 
 export function getLegalMoves(fields: Fields, player: Player): LegalMove[] {

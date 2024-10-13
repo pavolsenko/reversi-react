@@ -9,7 +9,7 @@ import {
 } from '@mui/material';
 
 import { WHITE } from '../interfaces/game';
-import { GameTitle } from './grid/GameTitle';
+import { GameTitle } from './GameTitle.tsx';
 import { Grid } from './grid/Grid.tsx';
 import { GameOverDialog } from './GameOverDialog.tsx';
 import { useGame } from '../hooks/useGame';

@@ -2,9 +2,9 @@ import { ReactNode } from 'react';
 import { Box, useTheme } from '@mui/material';
 
 import { Fields } from '../../interfaces/game';
-import { GridItem } from './GridItem.tsx';
+import { GridItem } from './GridItem';
 
-import { gridStyles } from './style';
+import { gridStyles } from './styles';
 
 export interface GridProps {
     fields: Fields;
@@ -27,7 +27,7 @@ export function Grid(props: GridProps) {
             for (let x = 0; x < 8; x++) {
                 result.push(
                     <GridItem
-                        key={'item' + y.toString() + x.toString()}
+                        key={'item' + x.toString() + y.toString()}
                         field={props.fields[x][y]}
                         onClick={onClick(x, y)}
                     />

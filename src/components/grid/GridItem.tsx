@@ -3,7 +3,7 @@ import { Box } from '@mui/material';
 
 import { BLACK, Field, WHITE } from '../../interfaces/game';
 
-import { blackGridItemStyles, gridItemWrapperItemStyles, whiteGridItemStyles } from './style';
+import { blackGridItemStyles, gridItemWrapperItemStyles, whiteGridItemStyles } from './styles.ts';
 
 export interface GridItemProps {
     field: Field;

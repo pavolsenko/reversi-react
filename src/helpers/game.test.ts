@@ -1,6 +1,6 @@
-import { checkIsGameOver, countBlack, countWhite, getLegalMoves, getStartGame } from './game';
+import { checkIsGameOver, countFields, getLegalMoves, getStartGame } from './game';
 
-import { EMPTY, LegalMove, WHITE } from '../interfaces/game';
+import {BLACK, EMPTY, LegalMove, WHITE} from '../interfaces/game';
 
 import { basicGame1, basicGame2 } from './__mocks__/fields';
 
@@ -18,15 +18,13 @@ describe('game helper:', () => {
         });
     });
 
-    describe('countWhite', () => {
+    describe('countFields', () => {
         it('should get white count', () => {
-            expect(countWhite(basicGame1)).toEqual(3);
+            expect(countFields(basicGame1, WHITE)).toEqual(3);
         });
-    });
 
-    describe('countBlack', () => {
         it('should get black count', () => {
-            expect(countBlack(basicGame1)).toEqual(3);
+            expect(countFields(basicGame1, BLACK)).toEqual(3);
         });
     });
 

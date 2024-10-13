@@ -1,6 +1,6 @@
 import { CircularProgress } from '@mui/material';
 
-import { BLACK, Player } from '../../interfaces/game';
+import { BLACK, Player } from '../interfaces/game';
 
 interface GameTitleProps {
     whiteCount: number;
