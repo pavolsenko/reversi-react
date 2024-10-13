@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { checkIsGameOver, countFields, getLegalMoves, getStartGame } from '../helpers/game';
 
-import { BLACK, EMPTY, Field, Fields, LegalMove, Player, WHITE } from '../interfaces/game';
+import { BLACK, Difficulty, EMPTY, Field, Fields, LegalMove, Player, WHITE } from '../interfaces/game';
 
 interface UseGame {
     resetGame: () => void;
@@ -13,6 +13,8 @@ interface UseGame {
     fields: Fields;
     whiteCount: number;
     blackCount: number;
+    difficulty: Difficulty;
+    setDifficulty: (difficulty: Difficulty) => void;
 }
 
 export function useGame(): UseGame {
@@ -23,6 +25,7 @@ export function useGame(): UseGame {
     const [whiteLegalMoves, setWhiteLegalMoves] = useState<LegalMove[]>(getLegalMoves(fields, WHITE));
     const [blackLegalMoves, setBlackLegalMoves] = useState<LegalMove[]>(getLegalMoves(fields, BLACK));
     const [isGameOver, setIsGameOver] = useState<boolean>(false);
+    const [difficulty, setDifficulty] = useState<number>(0);
 
     const onMove = useCallback(function (player: Player, x: number, y: number) {
         if (player !== currentPlayer) {
@@ -239,5 +242,7 @@ export function useGame(): UseGame {
         whiteCount,
         blackCount,
         currentPlayer,
+        difficulty,
+        setDifficulty,
     };
 }

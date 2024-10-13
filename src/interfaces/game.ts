@@ -24,3 +24,9 @@ export interface LegalMove {
     coordinates: Coordinates;
     direction: Direction;
 }
+
+export enum Difficulty {
+    EASY,
+    MEDIUM,
+    HARD,
+}

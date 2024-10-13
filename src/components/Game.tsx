@@ -1,14 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, MouseEvent } from 'react';
 import {
     Box,
-    Button,
     Card,
     CardActions,
     CardContent,
     CardHeader,
 } from '@mui/material';
 
-import { WHITE } from '../interfaces/game';
+import { Difficulty, WHITE } from '../interfaces/game';
+import { GameSettings } from './GameSettings';
 import { GameTitle } from './GameTitle.tsx';
 import { Grid } from './grid/Grid.tsx';
 import { GameOverDialog } from './GameOverDialog.tsx';
@@ -26,6 +26,8 @@ export function Game() {
         whiteCount,
         blackCount,
         fields,
+        difficulty,
+        setDifficulty,
     } = useGame();
 
     useEffect(() => {
@@ -38,6 +40,11 @@ export function Game() {
 
     function onDialogClose() {
         setIsGameOverDialogOpen(false);
+    }
+
+    function onDifficultyChange(event: MouseEvent<HTMLElement>, difficulty: Difficulty) {
+        event.preventDefault();
+        setDifficulty(difficulty);
     }
 
     return (
@@ -59,7 +66,11 @@ export function Game() {
                         <Grid fields={fields} onFieldClick={onFieldClick}/>
                     </CardContent>
                     <CardActions>
-                        <Button onClick={resetGame} variant={'outlined'} sx={{m: 1}}>Reset game</Button>
+                        <GameSettings
+                            difficulty={difficulty}
+                            onDifficultyChange={onDifficultyChange}
+                            onResetClick={resetGame}
+                        />
                     </CardActions>
                 </Card>
             </Box>
