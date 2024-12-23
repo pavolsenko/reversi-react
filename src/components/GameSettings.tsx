@@ -1,13 +1,10 @@
 import { MouseEvent } from 'react';
-import {
-    Box,
-    Button,
-    FormLabel,
-    ToggleButton,
-    ToggleButtonGroup,
-} from '@mui/material';
+
+import { Box, Button, ToggleButton, ToggleButtonGroup } from '@mui/material';
 
 import { Difficulty } from '../interfaces/game';
+
+import { gameSettingsStyles } from './styles.ts';
 
 interface GameSettingsProps {
     difficulty: Difficulty;
@@ -20,33 +17,27 @@ interface GameSettingsProps {
 
 export function GameSettings(props: GameSettingsProps) {
     return (
-        <Box>
+        <Box sx={gameSettingsStyles}>
             <Box>
                 <Button
                     onClick={props.onResetClick}
-                    variant={'text'}
-                    sx={{ m: 1 }}
+                    variant={'outlined'}
                     size={'medium'}
                 >
                     Reset game
                 </Button>
             </Box>
-            <Box>
-                <FormLabel>Difficulty:</FormLabel>
-                <ToggleButtonGroup
-                    value={props.difficulty}
-                    exclusive
-                    onChange={props.onDifficultyChange}
-                    size={'small'}
-                    color={'primary'}
-                >
-                    <ToggleButton value={Difficulty.EASY}>Easy</ToggleButton>
-                    <ToggleButton value={Difficulty.MEDIUM}>
-                        Medium
-                    </ToggleButton>
-                    <ToggleButton value={Difficulty.HARD}>Hard</ToggleButton>
-                </ToggleButtonGroup>
-            </Box>
+            <ToggleButtonGroup
+                value={props.difficulty}
+                exclusive
+                onChange={props.onDifficultyChange}
+                size={'small'}
+                color={'primary'}
+            >
+                <ToggleButton value={Difficulty.EASY}>Easy</ToggleButton>
+                <ToggleButton value={Difficulty.MEDIUM}>Medium</ToggleButton>
+                <ToggleButton value={Difficulty.HARD}>Hard</ToggleButton>
+            </ToggleButtonGroup>
         </Box>
     );
 }

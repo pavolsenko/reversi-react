@@ -225,38 +225,64 @@ export function useGame(): UseGame {
         }
 
         let blackMove: LegalMove | null = null;
-        for (let i = 0; i < blackLegalMoves.length; i++) {
-            const newMove = blackLegalMoves[i];
 
-            if (newMove.coordinates.x === 0 && newMove.coordinates.y === 0) {
-                blackMove = newMove;
-                break;
-            }
+        if (difficulty === Difficulty.EASY) {
+            blackMove =
+                blackLegalMoves[
+                    Math.floor(Math.random() * blackLegalMoves.length)
+                ];
+        }
 
-            if (newMove.coordinates.x === 7 && newMove.coordinates.y === 0) {
-                blackMove = newMove;
-                break;
-            }
+        if (difficulty === Difficulty.MEDIUM) {
+            for (let i = 0; i < blackLegalMoves.length; i++) {
+                const newMove = blackLegalMoves[i];
 
-            if (newMove.coordinates.x === 0 && newMove.coordinates.y === 7) {
-                blackMove = newMove;
-                break;
-            }
+                if (
+                    newMove.coordinates.x === 0 &&
+                    newMove.coordinates.y === 0
+                ) {
+                    blackMove = newMove;
+                    break;
+                }
 
-            if (newMove.coordinates.x === 7 && newMove.coordinates.y === 7) {
-                blackMove = newMove;
-                break;
-            }
+                if (
+                    newMove.coordinates.x === 7 &&
+                    newMove.coordinates.y === 0
+                ) {
+                    blackMove = newMove;
+                    break;
+                }
 
-            if (
-                newMove.coordinates.x === 0 ||
-                newMove.coordinates.y === 0 ||
-                newMove.coordinates.x === 7 ||
-                newMove.coordinates.y === 7
-            ) {
-                blackMove = newMove;
-                break;
+                if (
+                    newMove.coordinates.x === 0 &&
+                    newMove.coordinates.y === 7
+                ) {
+                    blackMove = newMove;
+                    break;
+                }
+
+                if (
+                    newMove.coordinates.x === 7 &&
+                    newMove.coordinates.y === 7
+                ) {
+                    blackMove = newMove;
+                    break;
+                }
+
+                if (
+                    newMove.coordinates.x === 0 ||
+                    newMove.coordinates.y === 0 ||
+                    newMove.coordinates.x === 7 ||
+                    newMove.coordinates.y === 7
+                ) {
+                    blackMove = newMove;
+                    break;
+                }
             }
+        }
+
+        if (difficulty === Difficulty.HARD) {
+            // TODO hard difficulty algorithm
         }
 
         if (!blackMove) {
@@ -276,7 +302,7 @@ export function useGame(): UseGame {
             if (whiteLegalMoves.length > 0) {
                 setCurrentPlayer(WHITE);
             }
-        }, 1000);
+        }, 500);
     }, [
         fields,
         blackLegalMoves,
