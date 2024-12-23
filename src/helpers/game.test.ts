@@ -1,6 +1,11 @@
-import { checkIsGameOver, countFields, getLegalMoves, getStartGame } from './game';
+import {
+    checkIsGameOver,
+    countFields,
+    getLegalMoves,
+    getStartGame,
+} from './game';
 
-import {BLACK, EMPTY, LegalMove, WHITE} from '../interfaces/game';
+import { BLACK, EMPTY, LegalMove, WHITE } from '../interfaces/game';
 
 import { basicGame1, basicGame2 } from './__mocks__/fields';
 
@@ -10,7 +15,6 @@ describe('game helper:', () => {
         expect(startGame[4][4].type).toBe(WHITE);
         expect(startGame[1][1].type).toBe(EMPTY);
     });
-
 
     describe('checkIfGameOver', () => {
         it('should return true', () => {
@@ -34,101 +38,101 @@ describe('game helper:', () => {
                 {
                     coordinates: {
                         x: 1,
-                        y: 0
+                        y: 0,
                     },
-                    direction: "SE"
+                    direction: 'SE',
                 },
                 {
                     coordinates: {
                         x: 2,
-                        y: 0
+                        y: 0,
                     },
-                    direction: "SE"
+                    direction: 'SE',
                 },
                 {
                     coordinates: {
                         x: 2,
-                        y: 0
+                        y: 0,
                     },
-                    direction: "S"
+                    direction: 'S',
                 },
                 {
                     coordinates: {
                         x: 3,
-                        y: 0
+                        y: 0,
                     },
-                    direction: "SE"
+                    direction: 'SE',
                 },
                 {
                     coordinates: {
                         x: 3,
-                        y: 0
+                        y: 0,
                     },
-                    direction: "S"
+                    direction: 'S',
                 },
                 {
                     coordinates: {
                         x: 4,
-                        y: 0
+                        y: 0,
                     },
-                    direction: "SW"
+                    direction: 'SW',
                 },
                 {
                     coordinates: {
                         x: 5,
-                        y: 0
+                        y: 0,
                     },
-                    direction: "SW"
+                    direction: 'SW',
                 },
                 {
                     coordinates: {
                         x: 1,
-                        y: 1
+                        y: 1,
                     },
-                    direction: "E"
+                    direction: 'E',
                 },
                 {
                     coordinates: {
                         x: 5,
-                        y: 4
+                        y: 4,
                     },
-                    direction: "W"
+                    direction: 'W',
                 },
                 {
                     coordinates: {
                         x: 5,
-                        y: 4
+                        y: 4,
                     },
-                    direction: "NW"
+                    direction: 'NW',
                 },
                 {
                     coordinates: {
                         x: 2,
-                        y: 5
+                        y: 5,
                     },
-                    direction: "NE"
+                    direction: 'NE',
                 },
                 {
                     coordinates: {
                         x: 3,
-                        y: 5
+                        y: 5,
                     },
-                    direction: "N"
+                    direction: 'N',
                 },
                 {
                     coordinates: {
                         x: 3,
-                        y: 5
+                        y: 5,
                     },
-                    direction: "NE"
+                    direction: 'NE',
                 },
                 {
                     coordinates: {
                         x: 5,
-                        y: 5
+                        y: 5,
                     },
-                    direction: "NW"
-                }
+                    direction: 'NW',
+                },
             ];
 
             expect(getLegalMoves(basicGame2, WHITE)).toStrictEqual(legalMoves);

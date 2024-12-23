@@ -15,7 +15,7 @@ export function Grid(props: GridProps) {
     const theme = useTheme();
 
     function onClick(x: number, y: number) {
-        return function() {
+        return function () {
             props.onFieldClick(x, y);
         };
     }
@@ -30,7 +30,7 @@ export function Grid(props: GridProps) {
                         key={'item' + x.toString() + y.toString()}
                         field={props.fields[x][y]}
                         onClick={onClick(x, y)}
-                    />
+                    />,
                 );
             }
         }
@@ -38,9 +38,5 @@ export function Grid(props: GridProps) {
         return result;
     }
 
-    return (
-        <Box sx={gridStyles(theme)}>
-            {renderGridItems()}
-        </Box>
-    );
+    return <Box sx={gridStyles(theme)}>{renderGridItems()}</Box>;
 }

@@ -1,11 +1,5 @@
 import { useEffect, useState, MouseEvent } from 'react';
-import {
-    Box,
-    Card,
-    CardActions,
-    CardContent,
-    CardHeader,
-} from '@mui/material';
+import { Box, Card, CardActions, CardContent, CardHeader } from '@mui/material';
 
 import { Difficulty, WHITE } from '../interfaces/game';
 import { GameSettings } from './GameSettings';
@@ -17,7 +11,8 @@ import { useGame } from '../hooks/useGame';
 import { appStyles } from '../styles';
 
 export function Game() {
-    const [isGameOverDialogOpen, setIsGameOverDialogOpen] = useState<boolean>(false);
+    const [isGameOverDialogOpen, setIsGameOverDialogOpen] =
+        useState<boolean>(false);
     const {
         resetGame,
         isGameOver,
@@ -42,7 +37,10 @@ export function Game() {
         setIsGameOverDialogOpen(false);
     }
 
-    function onDifficultyChange(event: MouseEvent<HTMLElement>, difficulty: Difficulty) {
+    function onDifficultyChange(
+        event: MouseEvent<HTMLElement>,
+        difficulty: Difficulty,
+    ) {
         event.preventDefault();
         setDifficulty(difficulty);
     }
@@ -63,7 +61,10 @@ export function Game() {
                         }
                     />
                     <CardContent>
-                        <Grid fields={fields} onFieldClick={onFieldClick}/>
+                        <Grid
+                            fields={fields}
+                            onFieldClick={onFieldClick}
+                        />
                     </CardContent>
                     <CardActions>
                         <GameSettings

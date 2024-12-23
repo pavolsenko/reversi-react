@@ -10,7 +10,8 @@ describe('<GameTitle/> component:', () => {
                 whiteCount={2}
                 blackCount={6}
                 isGameOver={false}
-                currentPlayer={WHITE}/>
+                currentPlayer={WHITE}
+            />,
         );
         expect(findByText('| Next turn: WHITE')).toBeTruthy();
     });

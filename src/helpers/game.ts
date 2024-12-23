@@ -1,4 +1,11 @@
-import { BLACK, EMPTY, Fields, LegalMove, Player, WHITE } from '../interfaces/game';
+import {
+    BLACK,
+    EMPTY,
+    Fields,
+    LegalMove,
+    Player,
+    WHITE,
+} from '../interfaces/game';
 
 export function getStartGame(): Fields {
     const fields: Fields = [[], [], [], [], [], [], [], []];
@@ -6,36 +13,43 @@ export function getStartGame(): Fields {
     for (let y = 0; y < 8; y++) {
         for (let x = 0; x < 8; x++) {
             if (y === 3 && x === 3) {
-                fields[x][y] = {type: WHITE};
+                fields[x][y] = { type: WHITE };
                 continue;
             }
 
             if (y === 3 && x === 4) {
-                fields[x][y] = {type: BLACK};
+                fields[x][y] = { type: BLACK };
                 continue;
             }
 
             if (y === 4 && x === 3) {
-                fields[x][y] = {type: BLACK};
+                fields[x][y] = { type: BLACK };
                 continue;
             }
 
             if (y === 4 && x === 4) {
-                fields[x][y] = {type: WHITE};
+                fields[x][y] = { type: WHITE };
                 continue;
             }
 
-            fields[x][y] = {type: EMPTY};
+            fields[x][y] = { type: EMPTY };
         }
     }
 
     return fields;
 }
 
-export function checkIsGameOver(fields: Fields, whiteLegalMoves: LegalMove[], blackLegalMoves: LegalMove[]): boolean {
+export function checkIsGameOver(
+    fields: Fields,
+    whiteLegalMoves: LegalMove[],
+    blackLegalMoves: LegalMove[],
+): boolean {
     const white: number = countFields(fields, WHITE);
     const black: number = countFields(fields, BLACK);
-    return white + black === 64 || (whiteLegalMoves.length === 0 && blackLegalMoves.length === 0);
+    return (
+        white + black === 64 ||
+        (whiteLegalMoves.length === 0 && blackLegalMoves.length === 0)
+    );
 }
 
 export function countFields(fields: Fields, player: Player): number {
@@ -66,7 +80,12 @@ export function getLegalMoves(fields: Fields, player: Player): LegalMove[] {
                 result.push(legalMoveNorth);
             }
 
-            const legalMoveNorthEast = getLegalMoveNorthEast(fields, player, x, y);
+            const legalMoveNorthEast = getLegalMoveNorthEast(
+                fields,
+                player,
+                x,
+                y,
+            );
             if (legalMoveNorthEast) {
                 result.push(legalMoveNorthEast);
             }
@@ -76,7 +95,12 @@ export function getLegalMoves(fields: Fields, player: Player): LegalMove[] {
                 result.push(legalMoveEast);
             }
 
-            const legalMoveSouthEast = getLegalMoveSouthEast(fields, player, x, y);
+            const legalMoveSouthEast = getLegalMoveSouthEast(
+                fields,
+                player,
+                x,
+                y,
+            );
             if (legalMoveSouthEast) {
                 result.push(legalMoveSouthEast);
             }
@@ -86,18 +110,27 @@ export function getLegalMoves(fields: Fields, player: Player): LegalMove[] {
                 result.push(legalMoveSouth);
             }
 
-            const legalMoveSouthWest = getLegalMoveSouthWest(fields, player, x, y);
+            const legalMoveSouthWest = getLegalMoveSouthWest(
+                fields,
+                player,
+                x,
+                y,
+            );
             if (legalMoveSouthWest) {
                 result.push(legalMoveSouthWest);
             }
-
 
             const legalMoveWest = getLegalMoveWest(fields, player, x, y);
             if (legalMoveWest) {
                 result.push(legalMoveWest);
             }
 
-            const legalMoveNorthWest = getLegalMoveNorthWest(fields, player, x, y);
+            const legalMoveNorthWest = getLegalMoveNorthWest(
+                fields,
+                player,
+                x,
+                y,
+            );
             if (legalMoveNorthWest) {
                 result.push(legalMoveNorthWest);
             }
@@ -107,7 +140,12 @@ export function getLegalMoves(fields: Fields, player: Player): LegalMove[] {
     return result;
 }
 
-export function getLegalMoveNorth(fields: Fields, player: Player, x: number, y: number): LegalMove | null {
+export function getLegalMoveNorth(
+    fields: Fields,
+    player: Player,
+    x: number,
+    y: number,
+): LegalMove | null {
     if (y < 2) {
         return null;
     }
@@ -134,12 +172,20 @@ export function getLegalMoveNorth(fields: Fields, player: Player, x: number, y: 
     return null;
 }
 
-export function getLegalMoveNorthEast(fields: Fields, player: Player, x: number, y: number): LegalMove | null {
+export function getLegalMoveNorthEast(
+    fields: Fields,
+    player: Player,
+    x: number,
+    y: number,
+): LegalMove | null {
     if (y < 2 || x > 5) {
         return null;
     }
 
-    if (fields[x + 1][y - 1].type === player || fields[x + 1][y - 1].type === EMPTY) {
+    if (
+        fields[x + 1][y - 1].type === player ||
+        fields[x + 1][y - 1].type === EMPTY
+    ) {
         return null;
     }
 
@@ -163,7 +209,12 @@ export function getLegalMoveNorthEast(fields: Fields, player: Player, x: number,
     return null;
 }
 
-export function getLegalMoveEast(fields: Fields, player: Player, x: number, y: number): LegalMove | null {
+export function getLegalMoveEast(
+    fields: Fields,
+    player: Player,
+    x: number,
+    y: number,
+): LegalMove | null {
     if (x > 5) {
         return null;
     }
@@ -190,12 +241,20 @@ export function getLegalMoveEast(fields: Fields, player: Player, x: number, y: n
     return null;
 }
 
-export function getLegalMoveSouthEast(fields: Fields, player: Player, x: number, y: number): LegalMove | null {
+export function getLegalMoveSouthEast(
+    fields: Fields,
+    player: Player,
+    x: number,
+    y: number,
+): LegalMove | null {
     if (x > 5 || y > 5) {
         return null;
     }
 
-    if (fields[x + 1][y + 1].type === player || fields[x + 1][y + 1].type === EMPTY) {
+    if (
+        fields[x + 1][y + 1].type === player ||
+        fields[x + 1][y + 1].type === EMPTY
+    ) {
         return null;
     }
 
@@ -219,7 +278,12 @@ export function getLegalMoveSouthEast(fields: Fields, player: Player, x: number,
     return null;
 }
 
-export function getLegalMoveSouth(fields: Fields, player: Player, x: number, y: number): LegalMove | null {
+export function getLegalMoveSouth(
+    fields: Fields,
+    player: Player,
+    x: number,
+    y: number,
+): LegalMove | null {
     if (y > 5) {
         return null;
     }
@@ -246,12 +310,20 @@ export function getLegalMoveSouth(fields: Fields, player: Player, x: number, y: 
     return null;
 }
 
-export function getLegalMoveSouthWest(fields: Fields, player: Player, x: number, y: number): LegalMove | null {
-    if (x < 2 ||  y > 5) {
+export function getLegalMoveSouthWest(
+    fields: Fields,
+    player: Player,
+    x: number,
+    y: number,
+): LegalMove | null {
+    if (x < 2 || y > 5) {
         return null;
     }
 
-    if (fields[x - 1][y + 1].type === player || fields[x - 1][y + 1].type === EMPTY) {
+    if (
+        fields[x - 1][y + 1].type === player ||
+        fields[x - 1][y + 1].type === EMPTY
+    ) {
         return null;
     }
 
@@ -275,7 +347,12 @@ export function getLegalMoveSouthWest(fields: Fields, player: Player, x: number,
     return null;
 }
 
-export function getLegalMoveWest(fields: Fields, player: Player, x: number, y: number): LegalMove | null {
+export function getLegalMoveWest(
+    fields: Fields,
+    player: Player,
+    x: number,
+    y: number,
+): LegalMove | null {
     if (x < 2) {
         return null;
     }
@@ -302,12 +379,20 @@ export function getLegalMoveWest(fields: Fields, player: Player, x: number, y: n
     return null;
 }
 
-export function getLegalMoveNorthWest(fields: Fields, player: Player, x: number, y: number): LegalMove | null {
+export function getLegalMoveNorthWest(
+    fields: Fields,
+    player: Player,
+    x: number,
+    y: number,
+): LegalMove | null {
     if (x < 2 || y < 2) {
         return null;
     }
 
-    if (fields[x - 1][y - 1].type === player || fields[x - 1][y - 1].type === EMPTY) {
+    if (
+        fields[x - 1][y - 1].type === player ||
+        fields[x - 1][y - 1].type === EMPTY
+    ) {
         return null;
     }
 

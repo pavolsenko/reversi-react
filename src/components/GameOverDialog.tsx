@@ -1,4 +1,11 @@
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from '@mui/material';
+import {
+    Button,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    Typography,
+} from '@mui/material';
 
 export interface GameOverModalProps {
     isGameOver: boolean;
@@ -26,7 +33,11 @@ export function GameOverDialog(props: GameOverModalProps) {
             <DialogTitle>Game Over</DialogTitle>
             <DialogContent>
                 <Typography variant={'h5'}>
-                    {getWinText() + ' ' + props.whiteCount + ':' + props.blackCount}
+                    {getWinText() +
+                        ' ' +
+                        props.whiteCount +
+                        ':' +
+                        props.blackCount}
                 </Typography>
             </DialogContent>
             <DialogActions>
