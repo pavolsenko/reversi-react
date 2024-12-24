@@ -61,11 +61,11 @@ export function useGame(): UseGame {
 
             if (player === WHITE) {
                 legalMoves = whiteLegalMoves.filter(function (item: Move) {
-                    return item.coordinates.x === x && item.coordinates.y === y;
+                    return item.x === x && item.y === y;
                 });
             } else {
                 legalMoves = blackLegalMoves.filter(function (item: Move) {
-                    return item.coordinates.x === x && item.coordinates.y === y;
+                    return item.x === x && item.y === y;
                 });
             }
 
@@ -74,7 +74,7 @@ export function useGame(): UseGame {
             }
 
             setBoard(() => {
-                const newBoard = applyMove(board, player, legalMoves, x, y);
+                const newBoard = applyMove(board, player, { x, y });
 
                 const newWhiteLegalMoves = getLegalMoves(newBoard, WHITE);
                 const newBlackLegalMoves = getLegalMoves(newBoard, BLACK);
@@ -112,7 +112,7 @@ export function useGame(): UseGame {
         }
 
         setTimeout(function () {
-            onMove(BLACK, blackMove.coordinates.x, blackMove.coordinates.y);
+            onMove(BLACK, blackMove.x, blackMove.y);
             if (whiteLegalMoves.length > 0) {
                 setCurrentPlayer(WHITE);
             }
@@ -120,7 +120,7 @@ export function useGame(): UseGame {
     }, [
         board,
         blackLegalMoves,
-        whiteLegalMoves.length,
+        whiteLegalMoves,
         currentPlayer,
         onMove,
         difficulty,
@@ -129,7 +129,9 @@ export function useGame(): UseGame {
     useEffect(() => {
         setWhiteCount(countItemsOnBoard(board, WHITE));
         setBlackCount(countItemsOnBoard(board, BLACK));
-        setIsGameOver(checkIsGameOver(board, whiteLegalMoves, blackLegalMoves));
+        setIsGameOver(checkIsGameOver(board));
+        setWhiteLegalMoves(getLegalMoves(board, WHITE));
+        setBlackLegalMoves(getLegalMoves(board, BLACK));
     }, [board, whiteLegalMoves, blackLegalMoves]);
 
     function resetGame() {

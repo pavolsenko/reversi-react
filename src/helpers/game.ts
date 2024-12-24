@@ -68,20 +68,15 @@ export function countItemsOnBoard(board: Board, player: Player): number {
     return count;
 }
 
-export function isValidMove(
-    board: Board,
-    x: number,
-    y: number,
-    player: Player,
-): boolean {
-    if (board[x][y].type !== EMPTY) {
+export function isValidMove(board: Board, move: Move, player: Player): boolean {
+    if (board[move.x][move.y].type !== EMPTY) {
         return false;
     }
 
-    const opponent = player === BLACK ? WHITE : BLACK;
+    const opponent: Player = player === BLACK ? WHITE : BLACK;
     for (const [dx, dy] of DIRECTIONS) {
-        let newX = x + dx;
-        let newY = y + dy;
+        let newX = move.x + dx;
+        let newY = move.y + dy;
         let hasOpponentBetween = false;
 
         while (
@@ -113,7 +108,7 @@ export function getLegalMoves(board: Board, player: Player): Move[] {
     const validMoves: Move[] = [];
     for (let y = 0; y < board.length; y++) {
         for (let x = 0; x < board[y].length; x++) {
-            if (!isValidMove(board, x, y, player)) {
+            if (isValidMove(board, { x, y }, player)) {
                 validMoves.push({
                     x,
                     y,
