@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
+    applyMove,
     checkIsGameOver,
-    countFields,
+    countItemsOnBoard,
+    findBestMove,
     getLegalMoves,
     getStartGame,
 } from '../helpers/game';
@@ -10,9 +12,8 @@ import {
     BLACK,
     Difficulty,
     EMPTY,
-    Field,
-    Fields,
-    LegalMove,
+    Board,
+    Move,
     Player,
     WHITE,
 } from '../interfaces/game';
@@ -22,9 +23,9 @@ interface UseGame {
     isGameOver: boolean;
     onMove: (player: Player, x: number, y: number) => void;
     currentPlayer: Player;
-    whiteLegalMoves: LegalMove[];
-    blackLegalMoves: LegalMove[];
-    fields: Fields;
+    whiteLegalMoves: Move[];
+    blackLegalMoves: Move[];
+    board: Board;
     whiteCount: number;
     blackCount: number;
     difficulty: Difficulty;
@@ -32,15 +33,15 @@ interface UseGame {
 }
 
 export function useGame(): UseGame {
-    const [fields, setFields] = useState<Field[][]>(getStartGame());
+    const [board, setBoard] = useState<Board>(getStartGame());
     const [currentPlayer, setCurrentPlayer] = useState<Player>(WHITE);
     const [whiteCount, setWhiteCount] = useState<number>(2);
     const [blackCount, setBlackCount] = useState<number>(2);
-    const [whiteLegalMoves, setWhiteLegalMoves] = useState<LegalMove[]>(
-        getLegalMoves(fields, WHITE),
+    const [whiteLegalMoves, setWhiteLegalMoves] = useState<Move[]>(
+        getLegalMoves(board, WHITE),
     );
-    const [blackLegalMoves, setBlackLegalMoves] = useState<LegalMove[]>(
-        getLegalMoves(fields, BLACK),
+    const [blackLegalMoves, setBlackLegalMoves] = useState<Move[]>(
+        getLegalMoves(board, BLACK),
     );
     const [isGameOver, setIsGameOver] = useState<boolean>(false);
     const [difficulty, setDifficulty] = useState<number>(0);
@@ -51,19 +52,19 @@ export function useGame(): UseGame {
                 return;
             }
 
-            const gameField = fields[x][y];
-            if (gameField.type !== EMPTY) {
+            const field = board[x][y];
+            if (field.type !== EMPTY) {
                 return;
             }
 
-            let legalMoves: LegalMove[];
+            let legalMoves: Move[];
 
             if (player === WHITE) {
-                legalMoves = whiteLegalMoves.filter(function (item: LegalMove) {
+                legalMoves = whiteLegalMoves.filter(function (item: Move) {
                     return item.coordinates.x === x && item.coordinates.y === y;
                 });
             } else {
-                legalMoves = blackLegalMoves.filter(function (item: LegalMove) {
+                legalMoves = blackLegalMoves.filter(function (item: Move) {
                     return item.coordinates.x === x && item.coordinates.y === y;
                 });
             }
@@ -72,135 +73,11 @@ export function useGame(): UseGame {
                 return;
             }
 
-            setFields(() => {
-                const newFields = [...fields];
-                let checkX: number;
-                let checkY: number;
-                legalMoves.forEach(function (legalMove: LegalMove) {
-                    newFields[x][y] = { type: player };
-                    if (legalMove.direction === 'N') {
-                        checkX = x;
-                        checkY = y - 1;
-                        while (
-                            checkY >= 0 &&
-                            newFields[checkX][checkY].type !== EMPTY &&
-                            newFields[checkX][checkY].type !== player
-                        ) {
-                            newFields[checkX][checkY].type = player;
-                            checkY--;
-                        }
-                        return;
-                    }
+            setBoard(() => {
+                const newBoard = applyMove(board, player, legalMoves, x, y);
 
-                    if (legalMove.direction === 'NE') {
-                        checkX = x + 1;
-                        checkY = y - 1;
-                        while (
-                            checkY >= 0 &&
-                            checkX < 8 &&
-                            newFields[checkX][checkY].type !== EMPTY &&
-                            newFields[checkX][checkY].type !== player
-                        ) {
-                            newFields[checkX][checkY].type = player;
-                            checkX++;
-                            checkY--;
-                        }
-                        return;
-                    }
-
-                    if (legalMove.direction === 'E') {
-                        checkX = x + 1;
-                        checkY = y;
-                        while (
-                            checkX < 8 &&
-                            newFields[checkX][checkY].type !== EMPTY &&
-                            newFields[checkX][checkY].type !== player
-                        ) {
-                            newFields[checkX][checkY].type = player;
-                            checkX++;
-                        }
-                        return;
-                    }
-
-                    if (legalMove.direction === 'SE') {
-                        checkX = x + 1;
-                        checkY = y + 1;
-                        while (
-                            checkY < 8 &&
-                            checkX < 8 &&
-                            newFields[checkX][checkY].type !== EMPTY &&
-                            newFields[checkX][checkY].type !== player
-                        ) {
-                            newFields[checkX][checkY].type = player;
-                            checkX++;
-                            checkY++;
-                        }
-                        return;
-                    }
-
-                    if (legalMove.direction === 'S') {
-                        checkX = x;
-                        checkY = y + 1;
-                        while (
-                            checkY < 8 &&
-                            newFields[checkX][checkY].type !== EMPTY &&
-                            newFields[checkX][checkY].type !== player
-                        ) {
-                            newFields[checkX][checkY].type = player;
-                            checkY++;
-                        }
-                        return;
-                    }
-
-                    if (legalMove.direction === 'SW') {
-                        checkX = x - 1;
-                        checkY = y + 1;
-                        while (
-                            checkX >= 0 &&
-                            checkY < 8 &&
-                            newFields[checkX][checkY].type !== EMPTY &&
-                            newFields[checkX][checkY].type !== player
-                        ) {
-                            newFields[checkX][checkY].type = player;
-                            checkX--;
-                            checkY++;
-                        }
-                        return;
-                    }
-
-                    if (legalMove.direction === 'W') {
-                        checkX = x - 1;
-                        checkY = y;
-                        while (
-                            checkX >= 0 &&
-                            newFields[checkX][checkY].type !== EMPTY &&
-                            newFields[checkX][checkY].type !== player
-                        ) {
-                            newFields[checkX][checkY].type = player;
-                            checkX--;
-                        }
-                        return;
-                    }
-
-                    if (legalMove.direction === 'NW') {
-                        checkX = x - 1;
-                        checkY = y - 1;
-                        while (
-                            checkX >= 0 &&
-                            checkY >= 0 &&
-                            newFields[checkX][checkY].type !== EMPTY &&
-                            newFields[checkX][checkY].type !== player
-                        ) {
-                            newFields[checkX][checkY].type = player;
-                            checkX--;
-                            checkY--;
-                        }
-                        return;
-                    }
-                });
-
-                const newWhiteLegalMoves = getLegalMoves(newFields, WHITE);
-                const newBlackLegalMoves = getLegalMoves(newFields, BLACK);
+                const newWhiteLegalMoves = getLegalMoves(newBoard, WHITE);
+                const newBlackLegalMoves = getLegalMoves(newBoard, BLACK);
 
                 setWhiteLegalMoves(newWhiteLegalMoves);
                 setBlackLegalMoves(newBlackLegalMoves);
@@ -213,10 +90,10 @@ export function useGame(): UseGame {
                     setCurrentPlayer(WHITE);
                 }
 
-                return newFields;
+                return newBoard;
             });
         },
-        [fields, currentPlayer, whiteLegalMoves, blackLegalMoves],
+        [board, currentPlayer, whiteLegalMoves, blackLegalMoves],
     );
 
     useEffect(() => {
@@ -224,77 +101,14 @@ export function useGame(): UseGame {
             return;
         }
 
-        let blackMove: LegalMove | null = null;
-
-        if (difficulty === Difficulty.EASY) {
-            blackMove =
-                blackLegalMoves[
-                    Math.floor(Math.random() * blackLegalMoves.length)
-                ];
-        }
-
-        if (difficulty === Difficulty.MEDIUM) {
-            for (let i = 0; i < blackLegalMoves.length; i++) {
-                const newMove = blackLegalMoves[i];
-
-                if (
-                    newMove.coordinates.x === 0 &&
-                    newMove.coordinates.y === 0
-                ) {
-                    blackMove = newMove;
-                    break;
-                }
-
-                if (
-                    newMove.coordinates.x === 7 &&
-                    newMove.coordinates.y === 0
-                ) {
-                    blackMove = newMove;
-                    break;
-                }
-
-                if (
-                    newMove.coordinates.x === 0 &&
-                    newMove.coordinates.y === 7
-                ) {
-                    blackMove = newMove;
-                    break;
-                }
-
-                if (
-                    newMove.coordinates.x === 7 &&
-                    newMove.coordinates.y === 7
-                ) {
-                    blackMove = newMove;
-                    break;
-                }
-
-                if (
-                    newMove.coordinates.x === 0 ||
-                    newMove.coordinates.y === 0 ||
-                    newMove.coordinates.x === 7 ||
-                    newMove.coordinates.y === 7
-                ) {
-                    blackMove = newMove;
-                    break;
-                }
-            }
-        }
-
-        if (difficulty === Difficulty.HARD) {
-            // TODO hard difficulty algorithm
-        }
+        const currentDifficulty = difficulty * 2 + 1;
+        let blackMove = findBestMove(board, BLACK, currentDifficulty);
 
         if (!blackMove) {
             blackMove =
                 blackLegalMoves[
                     Math.floor(Math.random() * blackLegalMoves.length)
                 ];
-        }
-
-        if (!blackMove) {
-            setCurrentPlayer(WHITE);
-            return;
         }
 
         setTimeout(function () {
@@ -304,25 +118,24 @@ export function useGame(): UseGame {
             }
         }, 500);
     }, [
-        fields,
+        board,
         blackLegalMoves,
         whiteLegalMoves.length,
         currentPlayer,
         onMove,
+        difficulty,
     ]);
 
     useEffect(() => {
-        setWhiteCount(countFields(fields, WHITE));
-        setBlackCount(countFields(fields, BLACK));
-        setIsGameOver(
-            checkIsGameOver(fields, whiteLegalMoves, blackLegalMoves),
-        );
-    }, [fields, whiteLegalMoves, blackLegalMoves]);
+        setWhiteCount(countItemsOnBoard(board, WHITE));
+        setBlackCount(countItemsOnBoard(board, BLACK));
+        setIsGameOver(checkIsGameOver(board, whiteLegalMoves, blackLegalMoves));
+    }, [board, whiteLegalMoves, blackLegalMoves]);
 
     function resetGame() {
         const startGame = getStartGame();
         setIsGameOver(false);
-        setFields(startGame);
+        setBoard(startGame);
         setCurrentPlayer(WHITE);
         setWhiteCount(2);
         setBlackCount(2);
@@ -336,7 +149,7 @@ export function useGame(): UseGame {
         onMove,
         whiteLegalMoves,
         blackLegalMoves,
-        fields,
+        board,
         whiteCount,
         blackCount,
         currentPlayer,

@@ -1,13 +1,13 @@
 import { ReactNode } from 'react';
 import { Box, useTheme } from '@mui/material';
 
-import { Fields } from '../../interfaces/game';
+import { Board } from '../../interfaces/game';
 import { GridItem } from './GridItem';
 
 import { gridStyles } from './styles';
 
 export interface GridProps {
-    fields: Fields;
+    board: Board;
     onFieldClick: (x: number, y: number) => void;
 }
 
@@ -28,7 +28,7 @@ export function Grid(props: GridProps) {
                 result.push(
                     <GridItem
                         key={'item' + x.toString() + y.toString()}
-                        field={props.fields[x][y]}
+                        field={props.board[x][y]}
                         onClick={onClick(x, y)}
                     />,
                 );

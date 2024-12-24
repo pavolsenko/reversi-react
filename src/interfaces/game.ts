@@ -1,8 +1,8 @@
-export type Fields = Field[][];
+export type Board = Field[][];
 
 export interface Field {
     type: FieldType;
-    coordinates?: Coordinates;
+    coordinates?: Move;
 }
 
 export const EMPTY = 'empty';
@@ -13,17 +13,21 @@ export type FieldType = typeof EMPTY | typeof BLACK | typeof WHITE;
 
 export type Player = typeof BLACK | typeof WHITE;
 
-export interface Coordinates {
+export interface Move {
     x: number;
     y: number;
 }
 
-export type Direction = 'N' | 'NE' | 'E' | 'SE' | 'S' | 'SW' | 'W' | 'NW';
-
-export interface LegalMove {
-    coordinates: Coordinates;
-    direction: Direction;
-}
+export const DIRECTIONS: number[][] = [
+    [-1, -1],
+    [-1, 0],
+    [-1, 1],
+    [0, -1],
+    [0, 1],
+    [1, -1],
+    [1, 0],
+    [1, 1],
+];
 
 export enum Difficulty {
     EASY,

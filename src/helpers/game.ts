@@ -1,63 +1,65 @@
 import {
     BLACK,
     EMPTY,
-    Fields,
-    LegalMove,
+    Board,
+    Move,
     Player,
     WHITE,
+    DIRECTIONS,
+    Field,
 } from '../interfaces/game';
 
-export function getStartGame(): Fields {
-    const fields: Fields = [[], [], [], [], [], [], [], []];
+export function getStartGame(): Board {
+    const board: Board = [[], [], [], [], [], [], [], []];
 
     for (let y = 0; y < 8; y++) {
         for (let x = 0; x < 8; x++) {
             if (y === 3 && x === 3) {
-                fields[x][y] = { type: WHITE };
+                board[x][y] = { type: WHITE };
                 continue;
             }
 
             if (y === 3 && x === 4) {
-                fields[x][y] = { type: BLACK };
+                board[x][y] = { type: BLACK };
                 continue;
             }
 
             if (y === 4 && x === 3) {
-                fields[x][y] = { type: BLACK };
+                board[x][y] = { type: BLACK };
                 continue;
             }
 
             if (y === 4 && x === 4) {
-                fields[x][y] = { type: WHITE };
+                board[x][y] = { type: WHITE };
                 continue;
             }
 
-            fields[x][y] = { type: EMPTY };
+            board[x][y] = { type: EMPTY };
         }
     }
 
-    return fields;
+    return board;
 }
 
-export function checkIsGameOver(
-    fields: Fields,
-    whiteLegalMoves: LegalMove[],
-    blackLegalMoves: LegalMove[],
-): boolean {
-    const white: number = countFields(fields, WHITE);
-    const black: number = countFields(fields, BLACK);
-    return (
-        white + black === 64 ||
-        (whiteLegalMoves.length === 0 && blackLegalMoves.length === 0)
-    );
+export function checkIsGameOver(board: Board): boolean {
+    const white: number = countItemsOnBoard(board, WHITE);
+    const black: number = countItemsOnBoard(board, BLACK);
+    const whiteLegalMoves: Move[] = getLegalMoves(board, WHITE);
+    const blackLegalMoves: Move[] = getLegalMoves(board, BLACK);
+
+    if (white + black === 64) {
+        return true;
+    }
+
+    return whiteLegalMoves.length === 0 && blackLegalMoves.length === 0;
 }
 
-export function countFields(fields: Fields, player: Player): number {
+export function countItemsOnBoard(board: Board, player: Player): number {
     let count: number = 0;
 
     for (let y = 0; y < 8; y++) {
         for (let x = 0; x < 8; x++) {
-            if (fields[x][y].type === player) {
+            if (board[x][y].type === player) {
                 count++;
             }
         }
@@ -66,352 +68,144 @@ export function countFields(fields: Fields, player: Player): number {
     return count;
 }
 
-export function getLegalMoves(fields: Fields, player: Player): LegalMove[] {
-    const result: LegalMove[] = [];
-
-    for (let y = 0; y < 8; y++) {
-        for (let x = 0; x < 8; x++) {
-            if (fields[x][y].type !== EMPTY) {
-                continue;
-            }
-
-            const legalMoveNorth = getLegalMoveNorth(fields, player, x, y);
-            if (legalMoveNorth) {
-                result.push(legalMoveNorth);
-            }
-
-            const legalMoveNorthEast = getLegalMoveNorthEast(
-                fields,
-                player,
-                x,
-                y,
-            );
-            if (legalMoveNorthEast) {
-                result.push(legalMoveNorthEast);
-            }
-
-            const legalMoveEast = getLegalMoveEast(fields, player, x, y);
-            if (legalMoveEast) {
-                result.push(legalMoveEast);
-            }
-
-            const legalMoveSouthEast = getLegalMoveSouthEast(
-                fields,
-                player,
-                x,
-                y,
-            );
-            if (legalMoveSouthEast) {
-                result.push(legalMoveSouthEast);
-            }
-
-            const legalMoveSouth = getLegalMoveSouth(fields, player, x, y);
-            if (legalMoveSouth) {
-                result.push(legalMoveSouth);
-            }
-
-            const legalMoveSouthWest = getLegalMoveSouthWest(
-                fields,
-                player,
-                x,
-                y,
-            );
-            if (legalMoveSouthWest) {
-                result.push(legalMoveSouthWest);
-            }
-
-            const legalMoveWest = getLegalMoveWest(fields, player, x, y);
-            if (legalMoveWest) {
-                result.push(legalMoveWest);
-            }
-
-            const legalMoveNorthWest = getLegalMoveNorthWest(
-                fields,
-                player,
-                x,
-                y,
-            );
-            if (legalMoveNorthWest) {
-                result.push(legalMoveNorthWest);
-            }
-        }
-    }
-
-    return result;
-}
-
-export function getLegalMoveNorth(
-    fields: Fields,
-    player: Player,
+export function isValidMove(
+    board: Board,
     x: number,
     y: number,
-): LegalMove | null {
-    if (y < 2) {
-        return null;
+    player: Player,
+): boolean {
+    if (board[x][y].type !== EMPTY) {
+        return false;
     }
 
-    if (fields[x][y - 1].type === player || fields[x][y - 1].type === EMPTY) {
-        return null;
-    }
+    const opponent = player === BLACK ? WHITE : BLACK;
+    for (const [dx, dy] of DIRECTIONS) {
+        let newX = x + dx;
+        let newY = y + dy;
+        let hasOpponentBetween = false;
 
-    let counterY = y - 2;
-    while (counterY >= 0) {
-        if (fields[x][counterY].type === EMPTY) {
-            return null;
+        while (
+            newX >= 0 &&
+            newX < board.length &&
+            newY >= 0 &&
+            newY < board[0].length
+        ) {
+            if (board[newX][newY].type === opponent) {
+                hasOpponentBetween = true;
+            } else if (
+                board[newX][newY].type === player &&
+                hasOpponentBetween
+            ) {
+                return true;
+            } else {
+                break;
+            }
+
+            newX += dx;
+            newY += dy;
         }
-
-        if (fields[x][counterY].type === player) {
-            return {
-                coordinates: { x, y },
-                direction: 'N',
-            };
-        }
-        counterY--;
     }
 
-    return null;
+    return false;
 }
 
-export function getLegalMoveNorthEast(
-    fields: Fields,
-    player: Player,
-    x: number,
-    y: number,
-): LegalMove | null {
-    if (y < 2 || x > 5) {
-        return null;
-    }
-
-    if (
-        fields[x + 1][y - 1].type === player ||
-        fields[x + 1][y - 1].type === EMPTY
-    ) {
-        return null;
-    }
-
-    let counterX = x + 2;
-    let counterY = y - 2;
-    while (counterX < 8 && counterY >= 0) {
-        if (fields[counterX][counterY].type === EMPTY) {
-            return null;
+export function getLegalMoves(board: Board, player: Player): Move[] {
+    const validMoves: Move[] = [];
+    for (let y = 0; y < board.length; y++) {
+        for (let x = 0; x < board[y].length; x++) {
+            if (!isValidMove(board, x, y, player)) {
+                validMoves.push({
+                    x,
+                    y,
+                });
+            }
         }
-
-        if (fields[counterX][counterY].type === player) {
-            return {
-                coordinates: { x, y },
-                direction: 'NE',
-            };
-        }
-        counterX++;
-        counterY--;
     }
-
-    return null;
+    return validMoves;
 }
 
-export function getLegalMoveEast(
-    fields: Fields,
-    player: Player,
-    x: number,
-    y: number,
-): LegalMove | null {
-    if (x > 5) {
-        return null;
-    }
+export function applyMove(board: Board, player: Player, move: Move): Board {
+    const newBoard: Board = board.map((fields: Field[]): Field[] => [
+        ...fields,
+    ]);
+    const opponent = player === BLACK ? WHITE : BLACK;
+    newBoard[move.x][move.y].type = player;
 
-    if (fields[x + 1][y].type === player || fields[x + 1][y].type === EMPTY) {
-        return null;
-    }
+    for (const [dx, dy] of DIRECTIONS) {
+        let newX = move.x + dx;
+        let newY = move.y + dy;
+        const flipPositions: [number, number][] = [];
 
-    let counterX = x + 2;
-    while (counterX < 8) {
-        if (fields[counterX][y].type === EMPTY) {
-            return null;
+        while (
+            newX >= 0 &&
+            newX < newBoard.length &&
+            newY >= 0 &&
+            newY < newBoard[0].length
+        ) {
+            if (newBoard[newX][newY].type === opponent) {
+                flipPositions.push([newX, newY]);
+            } else if (newBoard[newX][newY].type === player) {
+                for (const [fx, fy] of flipPositions) {
+                    newBoard[fx][fy].type = player;
+                }
+                break;
+            } else {
+                break;
+            }
+
+            newX += dx;
+            newY += dy;
         }
-
-        if (fields[counterX][y].type === player) {
-            return {
-                coordinates: { x, y },
-                direction: 'E',
-            };
-        }
-        counterX++;
     }
-
-    return null;
+    return newBoard;
 }
 
-export function getLegalMoveSouthEast(
-    fields: Fields,
+export function minimax(
+    board: Board,
+    depth: number,
     player: Player,
-    x: number,
-    y: number,
-): LegalMove | null {
-    if (x > 5 || y > 5) {
-        return null;
+    alpha: number,
+    beta: number,
+): number {
+    const legalMoves: Move[] = getLegalMoves(board, player);
+
+    if (depth === 0) {
+        return countItemsOnBoard(board, player);
     }
 
-    if (
-        fields[x + 1][y + 1].type === player ||
-        fields[x + 1][y + 1].type === EMPTY
-    ) {
-        return null;
+    if (legalMoves.length === 0) {
+        return countItemsOnBoard(board, player);
     }
 
-    let counterX = x + 2;
-    let counterY = y + 2;
-    while (counterX < 8 && counterY < 8) {
-        if (fields[counterX][counterY].type === EMPTY) {
-            return null;
+    let maxEval = -Infinity;
+    for (const move of legalMoves) {
+        const newBoard = applyMove(board, player, move);
+        const evaluate = minimax(newBoard, depth - 1, player, alpha, beta);
+        maxEval = Math.max(maxEval, evaluate);
+        alpha = Math.max(alpha, evaluate);
+        if (beta <= alpha) {
+            break;
         }
-
-        if (fields[counterX][counterY].type === player) {
-            return {
-                coordinates: { x, y },
-                direction: 'SE',
-            };
-        }
-        counterX++;
-        counterY++;
     }
-
-    return null;
+    return maxEval;
 }
 
-export function getLegalMoveSouth(
-    fields: Fields,
+export function findBestMove(
+    board: Board,
     player: Player,
-    x: number,
-    y: number,
-): LegalMove | null {
-    if (y > 5) {
-        return null;
-    }
+    depth: number,
+): Move | null {
+    let bestMove: Move | null = null;
+    let bestScore = -Infinity;
+    const legalMoves = getLegalMoves(board, player);
 
-    if (fields[x][y + 1].type === player || fields[x][y + 1].type === EMPTY) {
-        return null;
-    }
-
-    let counterY = y + 2;
-    while (counterY < 8) {
-        if (fields[x][counterY].type === EMPTY) {
-            return null;
+    for (const move of legalMoves) {
+        const newBoard = applyMove(board, player, move);
+        const score = minimax(newBoard, depth - 1, player, -Infinity, Infinity);
+        if (score > bestScore) {
+            bestScore = score;
+            bestMove = move;
         }
-
-        if (fields[x][counterY].type === player) {
-            return {
-                coordinates: { x, y },
-                direction: 'S',
-            };
-        }
-        counterY++;
     }
-
-    return null;
-}
-
-export function getLegalMoveSouthWest(
-    fields: Fields,
-    player: Player,
-    x: number,
-    y: number,
-): LegalMove | null {
-    if (x < 2 || y > 5) {
-        return null;
-    }
-
-    if (
-        fields[x - 1][y + 1].type === player ||
-        fields[x - 1][y + 1].type === EMPTY
-    ) {
-        return null;
-    }
-
-    let counterX = x - 2;
-    let counterY = y + 2;
-    while (counterX >= 0 && counterY < 8) {
-        if (fields[counterX][counterY].type === EMPTY) {
-            return null;
-        }
-
-        if (fields[counterX][counterY].type === player) {
-            return {
-                coordinates: { x, y },
-                direction: 'SW',
-            };
-        }
-        counterX--;
-        counterY++;
-    }
-
-    return null;
-}
-
-export function getLegalMoveWest(
-    fields: Fields,
-    player: Player,
-    x: number,
-    y: number,
-): LegalMove | null {
-    if (x < 2) {
-        return null;
-    }
-
-    if (fields[x - 1][y].type === player || fields[x - 1][y].type === EMPTY) {
-        return null;
-    }
-
-    let counterX = x - 2;
-    while (counterX >= 0) {
-        if (fields[counterX][y].type === EMPTY) {
-            return null;
-        }
-
-        if (fields[counterX][y].type === player) {
-            return {
-                coordinates: { x, y },
-                direction: 'W',
-            };
-        }
-        counterX--;
-    }
-
-    return null;
-}
-
-export function getLegalMoveNorthWest(
-    fields: Fields,
-    player: Player,
-    x: number,
-    y: number,
-): LegalMove | null {
-    if (x < 2 || y < 2) {
-        return null;
-    }
-
-    if (
-        fields[x - 1][y - 1].type === player ||
-        fields[x - 1][y - 1].type === EMPTY
-    ) {
-        return null;
-    }
-
-    let counterX = x - 2;
-    let counterY = y - 2;
-    while (counterX >= 0 && counterY >= 0) {
-        if (fields[counterX][counterY].type === EMPTY) {
-            return null;
-        }
-
-        if (fields[counterX][counterY].type === player) {
-            return {
-                coordinates: { x, y },
-                direction: 'NW',
-            };
-        }
-        counterX--;
-        counterY--;
-    }
-
-    return null;
+    return bestMove;
 }

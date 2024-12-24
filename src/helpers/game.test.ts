@@ -1,13 +1,18 @@
 import {
     checkIsGameOver,
-    countFields,
+    countItemsOnBoard,
     getLegalMoves,
     getStartGame,
 } from './game';
 
-import { BLACK, EMPTY, LegalMove, WHITE } from '../interfaces/game';
+import { BLACK, EMPTY, Move, WHITE } from '../interfaces/game';
 
-import { basicGame1, basicGame2 } from './__mocks__/fields';
+import {
+    basicGame1,
+    basicGame2,
+    basicGame3,
+    endGame,
+} from './__mocks__/boards';
 
 describe('game helper:', () => {
     describe('getStartGame', () => {
@@ -17,121 +22,87 @@ describe('game helper:', () => {
     });
 
     describe('checkIfGameOver', () => {
+        it('should return false', () => {
+            expect(checkIsGameOver(getStartGame())).toBeFalsy();
+        });
+
+        it('should return false', () => {
+            expect(checkIsGameOver(basicGame3)).toBeFalsy();
+        });
+
         it('should return true', () => {
-            expect(checkIsGameOver(getStartGame(), [], [])).toBeTruthy();
+            expect(checkIsGameOver(endGame)).toBeTruthy();
         });
     });
 
-    describe('countFields', () => {
+    describe('countItemsOnBoard', () => {
         it('should get white count', () => {
-            expect(countFields(basicGame1, WHITE)).toEqual(3);
+            expect(countItemsOnBoard(basicGame1, WHITE)).toEqual(3);
         });
 
         it('should get black count', () => {
-            expect(countFields(basicGame1, BLACK)).toEqual(3);
+            expect(countItemsOnBoard(basicGame1, BLACK)).toEqual(3);
         });
     });
 
     describe('getLegalMoves', () => {
         it('should get legal moves', () => {
-            const legalMoves: LegalMove[] = [
+            const legalMoves: Move[] = [
                 {
-                    coordinates: {
-                        x: 1,
-                        y: 0,
-                    },
-                    direction: 'SE',
+                    x: 1,
+                    y: 0,
                 },
                 {
-                    coordinates: {
-                        x: 2,
-                        y: 0,
-                    },
-                    direction: 'SE',
+                    x: 2,
+                    y: 0,
                 },
                 {
-                    coordinates: {
-                        x: 2,
-                        y: 0,
-                    },
-                    direction: 'S',
+                    x: 2,
+                    y: 0,
                 },
                 {
-                    coordinates: {
-                        x: 3,
-                        y: 0,
-                    },
-                    direction: 'SE',
+                    x: 3,
+                    y: 0,
                 },
                 {
-                    coordinates: {
-                        x: 3,
-                        y: 0,
-                    },
-                    direction: 'S',
+                    x: 3,
+                    y: 0,
                 },
                 {
-                    coordinates: {
-                        x: 4,
-                        y: 0,
-                    },
-                    direction: 'SW',
+                    x: 4,
+                    y: 0,
                 },
                 {
-                    coordinates: {
-                        x: 5,
-                        y: 0,
-                    },
-                    direction: 'SW',
+                    x: 5,
+                    y: 0,
                 },
                 {
-                    coordinates: {
-                        x: 1,
-                        y: 1,
-                    },
-                    direction: 'E',
+                    x: 1,
+                    y: 1,
                 },
                 {
-                    coordinates: {
-                        x: 5,
-                        y: 4,
-                    },
-                    direction: 'W',
+                    x: 5,
+                    y: 4,
                 },
                 {
-                    coordinates: {
-                        x: 5,
-                        y: 4,
-                    },
-                    direction: 'NW',
+                    x: 5,
+                    y: 4,
                 },
                 {
-                    coordinates: {
-                        x: 2,
-                        y: 5,
-                    },
-                    direction: 'NE',
+                    x: 2,
+                    y: 5,
                 },
                 {
-                    coordinates: {
-                        x: 3,
-                        y: 5,
-                    },
-                    direction: 'N',
+                    x: 3,
+                    y: 5,
                 },
                 {
-                    coordinates: {
-                        x: 3,
-                        y: 5,
-                    },
-                    direction: 'NE',
+                    x: 3,
+                    y: 5,
                 },
                 {
-                    coordinates: {
-                        x: 5,
-                        y: 5,
-                    },
-                    direction: 'NW',
+                    x: 5,
+                    y: 5,
                 },
             ];
 

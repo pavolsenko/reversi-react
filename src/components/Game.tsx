@@ -20,7 +20,7 @@ export function Game() {
         onMove,
         whiteCount,
         blackCount,
-        fields,
+        board,
         difficulty,
         setDifficulty,
     } = useGame();
@@ -62,7 +62,7 @@ export function Game() {
                     />
                     <CardContent>
                         <Grid
-                            fields={fields}
+                            board={board}
                             onFieldClick={onFieldClick}
                         />
                     </CardContent>
