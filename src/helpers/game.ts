@@ -44,14 +44,15 @@ export function getStartGame(): Board {
 export function checkIsGameOver(board: Board): boolean {
     const white: number = countItemsOnBoard(board, WHITE);
     const black: number = countItemsOnBoard(board, BLACK);
-    const whiteLegalMoves: Move[] = getLegalMoves(board, WHITE);
-    const blackLegalMoves: Move[] = getLegalMoves(board, BLACK);
 
     if (white + black === 64) {
         return true;
     }
 
-    return whiteLegalMoves.length === 0 && blackLegalMoves.length === 0;
+    const whiteValidMoves: Move[] = getValidMovesForPlayer(board, WHITE);
+    const blackValidMoves: Move[] = getValidMovesForPlayer(board, BLACK);
+
+    return whiteValidMoves.length === 0 && blackValidMoves.length === 0;
 }
 
 export function countItemsOnBoard(board: Board, player: Player): number {
@@ -104,7 +105,7 @@ export function isValidMove(board: Board, move: Move, player: Player): boolean {
     return false;
 }
 
-export function getLegalMoves(board: Board, player: Player): Move[] {
+export function getValidMovesForPlayer(board: Board, player: Player): Move[] {
     const validMoves: Move[] = [];
     for (let y = 0; y < board.length; y++) {
         for (let x = 0; x < board[y].length; x++) {
@@ -119,7 +120,11 @@ export function getLegalMoves(board: Board, player: Player): Move[] {
     return validMoves;
 }
 
-export function applyMove(board: Board, player: Player, move: Move): Board {
+export function applyMoveForPlayer(
+    board: Board,
+    player: Player,
+    move: Move,
+): Board {
     const newBoard: Board = board.map((fields: Field[]): Field[] => [
         ...fields,
     ]);
@@ -162,7 +167,7 @@ export function minimax(
     alpha: number,
     beta: number,
 ): number {
-    const legalMoves: Move[] = getLegalMoves(board, player);
+    const legalMoves: Move[] = getValidMovesForPlayer(board, player);
 
     if (depth === 0) {
         return countItemsOnBoard(board, player);
@@ -174,7 +179,7 @@ export function minimax(
 
     let maxEval = -Infinity;
     for (const move of legalMoves) {
-        const newBoard = applyMove(board, player, move);
+        const newBoard = applyMoveForPlayer(board, player, move);
         const evaluate = minimax(newBoard, depth - 1, player, alpha, beta);
         maxEval = Math.max(maxEval, evaluate);
         alpha = Math.max(alpha, evaluate);
@@ -185,17 +190,17 @@ export function minimax(
     return maxEval;
 }
 
-export function findBestMove(
+export function findBestMoveForPlayer(
     board: Board,
     player: Player,
     depth: number,
 ): Move | null {
     let bestMove: Move | null = null;
     let bestScore = -Infinity;
-    const legalMoves = getLegalMoves(board, player);
+    const legalMoves = getValidMovesForPlayer(board, player);
 
     for (const move of legalMoves) {
-        const newBoard = applyMove(board, player, move);
+        const newBoard = applyMoveForPlayer(board, player, move);
         const score = minimax(newBoard, depth - 1, player, -Infinity, Infinity);
         if (score > bestScore) {
             bestScore = score;

@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
-    applyMove,
+    applyMoveForPlayer,
     checkIsGameOver,
     countItemsOnBoard,
-    findBestMove,
-    getLegalMoves,
+    findBestMoveForPlayer,
+    getValidMovesForPlayer,
     getStartGame,
 } from '../helpers/game';
 
@@ -23,8 +23,6 @@ interface UseGame {
     isGameOver: boolean;
     onMove: (player: Player, x: number, y: number) => void;
     currentPlayer: Player;
-    whiteLegalMoves: Move[];
-    blackLegalMoves: Move[];
     board: Board;
     whiteCount: number;
     blackCount: number;
@@ -37,12 +35,6 @@ export function useGame(): UseGame {
     const [currentPlayer, setCurrentPlayer] = useState<Player>(WHITE);
     const [whiteCount, setWhiteCount] = useState<number>(2);
     const [blackCount, setBlackCount] = useState<number>(2);
-    const [whiteLegalMoves, setWhiteLegalMoves] = useState<Move[]>(
-        getLegalMoves(board, WHITE),
-    );
-    const [blackLegalMoves, setBlackLegalMoves] = useState<Move[]>(
-        getLegalMoves(board, BLACK),
-    );
     const [isGameOver, setIsGameOver] = useState<boolean>(false);
     const [difficulty, setDifficulty] = useState<number>(0);
 
@@ -57,30 +49,28 @@ export function useGame(): UseGame {
                 return;
             }
 
-            let legalMoves: Move[];
-
-            if (player === WHITE) {
-                legalMoves = whiteLegalMoves.filter(function (item: Move) {
-                    return item.x === x && item.y === y;
-                });
-            } else {
-                legalMoves = blackLegalMoves.filter(function (item: Move) {
-                    return item.x === x && item.y === y;
-                });
-            }
+            const legalMoves: Move[] = getValidMovesForPlayer(
+                board,
+                player,
+            ).filter(function (item: Move) {
+                return item.x === x && item.y === y;
+            });
 
             if (legalMoves.length === 0) {
                 return;
             }
 
             setBoard(() => {
-                const newBoard = applyMove(board, player, { x, y });
+                const newBoard = applyMoveForPlayer(board, player, { x, y });
 
-                const newWhiteLegalMoves = getLegalMoves(newBoard, WHITE);
-                const newBlackLegalMoves = getLegalMoves(newBoard, BLACK);
-
-                setWhiteLegalMoves(newWhiteLegalMoves);
-                setBlackLegalMoves(newBlackLegalMoves);
+                const newWhiteLegalMoves = getValidMovesForPlayer(
+                    newBoard,
+                    WHITE,
+                );
+                const newBlackLegalMoves = getValidMovesForPlayer(
+                    newBoard,
+                    BLACK,
+                );
 
                 if (player === WHITE && newBlackLegalMoves.length > 0) {
                     setCurrentPlayer(BLACK);
@@ -93,7 +83,7 @@ export function useGame(): UseGame {
                 return newBoard;
             });
         },
-        [board, currentPlayer, whiteLegalMoves, blackLegalMoves],
+        [board, currentPlayer],
     );
 
     useEffect(() => {
@@ -101,9 +91,15 @@ export function useGame(): UseGame {
             return;
         }
 
-        const currentDifficulty = difficulty * 2 + 1;
-        let blackMove = findBestMove(board, BLACK, currentDifficulty);
+        const blackLegalMoves = getValidMovesForPlayer(board, BLACK);
 
+        if (blackLegalMoves.length === 0) {
+            setCurrentPlayer(WHITE);
+            return;
+        }
+
+        const currentDifficulty = difficulty * 2 + 1;
+        let blackMove = findBestMoveForPlayer(board, BLACK, currentDifficulty);
         if (!blackMove) {
             blackMove =
                 blackLegalMoves[
@@ -112,45 +108,30 @@ export function useGame(): UseGame {
         }
 
         setTimeout(function () {
-            onMove(BLACK, blackMove.x, blackMove.y);
-            if (whiteLegalMoves.length > 0) {
-                setCurrentPlayer(WHITE);
-            }
-        }, 500);
-    }, [
-        board,
-        blackLegalMoves,
-        whiteLegalMoves,
-        currentPlayer,
-        onMove,
-        difficulty,
-    ]);
+            const newBoard = applyMoveForPlayer(board, BLACK, blackMove);
+            setBoard(newBoard);
+            setCurrentPlayer(WHITE);
+        }, 1000);
+    }, [board, currentPlayer, onMove, difficulty]);
 
     useEffect(() => {
         setWhiteCount(countItemsOnBoard(board, WHITE));
         setBlackCount(countItemsOnBoard(board, BLACK));
         setIsGameOver(checkIsGameOver(board));
-        setWhiteLegalMoves(getLegalMoves(board, WHITE));
-        setBlackLegalMoves(getLegalMoves(board, BLACK));
-    }, [board, whiteLegalMoves, blackLegalMoves]);
+    }, [board]);
 
     function resetGame() {
-        const startGame = getStartGame();
         setIsGameOver(false);
-        setBoard(startGame);
+        setBoard(getStartGame());
         setCurrentPlayer(WHITE);
         setWhiteCount(2);
         setBlackCount(2);
-        setWhiteLegalMoves(getLegalMoves(startGame, WHITE));
-        setBlackLegalMoves(getLegalMoves(startGame, BLACK));
     }
 
     return {
         resetGame,
         isGameOver,
         onMove,
-        whiteLegalMoves,
-        blackLegalMoves,
         board,
         whiteCount,
         blackCount,
