@@ -6,6 +6,7 @@ import {
     findBestMoveForPlayer,
     getValidMovesForPlayer,
     getStartGame,
+    getDifficultyDepth,
 } from '../helpers/game';
 
 import {
@@ -101,7 +102,7 @@ export function useGame(): UseGame {
             let blackMove: Move | null = findBestMoveForPlayer(
                 board,
                 BLACK,
-                difficulty * 3 + 1,
+                getDifficultyDepth(difficulty, whiteCount + blackCount),
             );
 
             if (!blackMove) {
@@ -121,7 +122,7 @@ export function useGame(): UseGame {
                 return newBoard;
             });
         }, 100);
-    }, [board, currentPlayer, difficulty]);
+    }, [board, currentPlayer, difficulty, blackCount, whiteCount]);
 
     useEffect(() => {
         setWhiteCount(countItemsOnBoard(board, WHITE));

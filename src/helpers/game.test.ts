@@ -114,12 +114,12 @@ describe('game helper:', () => {
     describe('findBestMoveForPlayer', () => {
         it('should return the best move for player', () => {
             expect(findBestMoveForPlayer(basicGame2, BLACK, 4)).toEqual({
-                x: 6,
-                y: 0,
+                x: 0,
+                y: 4,
             });
             expect(findBestMoveForPlayer(basicGame1, WHITE, 6)).toEqual({
-                x: 3,
-                y: 2,
+                x: 1,
+                y: 3,
             });
         });
     });

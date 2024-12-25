@@ -1,16 +1,18 @@
 import {
     BLACK,
-    EMPTY,
     Board,
+    Difficulty,
+    DIRECTIONS,
+    EMPTY,
+    Field,
     Move,
     Player,
     WHITE,
-    DIRECTIONS,
 } from '../interfaces/game';
 
 export function getStartGame(): Board {
-    const board: Board = Array.from({ length: 8 }, () =>
-        Array.from({ length: 8 }, () => ({ type: EMPTY })),
+    const board: Board = Array.from({ length: 8 }, (): Field[] =>
+        Array.from({ length: 8 }, (): Field => ({ type: EMPTY })),
     );
 
     board[3][3].type = WHITE;
@@ -141,27 +143,37 @@ export function applyMoveForPlayer(
     return newBoard;
 }
 
-function orderMoves(moves: Move[]): Move[] {
-    return moves.sort((a, b) => {
-        const corners = [
-            { x: 0, y: 0 },
-            { x: 0, y: 7 },
-            { x: 7, y: 0 },
-            { x: 7, y: 7 },
-        ];
-        const isCorner = (move: Move) =>
-            corners.some(
-                (corner) => corner.x === move.x && corner.y === move.y,
-            );
+function orderMoves(moves: Move[], board: Board, player: Player): Move[] {
+    const corners: Move[] = [
+        { x: 0, y: 0 },
+        { x: 0, y: 7 },
+        { x: 7, y: 0 },
+        { x: 7, y: 7 },
+    ];
 
+    const isCorner = (move: Move): boolean =>
+        corners.some((corner) => corner.x === move.x && corner.y === move.y);
+
+    return moves.sort((a: Move, b: Move): number => {
         if (isCorner(b)) {
             return 1;
         }
+
         if (isCorner(a)) {
             return -1;
         }
 
-        return 0;
+        const evalA: number = evaluateBoard(
+            applyMoveForPlayer(board, player, a),
+            player,
+        );
+
+        const evalB: number = evaluateBoard(
+            applyMoveForPlayer(board, player, b),
+            player,
+        );
+
+        return evalB - evalA;
     });
 }
 
@@ -178,6 +190,8 @@ function evaluateBoard(board: Board, player: Player): number {
     ];
 
     let score = 0;
+    let mobility = 0;
+
     for (let y = 0; y < 8; y++) {
         for (let x = 0; x < 8; x++) {
             if (board[y][x].type === player) {
@@ -187,6 +201,10 @@ function evaluateBoard(board: Board, player: Player): number {
             }
         }
     }
+
+    mobility += getValidMovesForPlayer(board, player).length;
+    score += mobility * 10;
+
     return score;
 }
 
@@ -198,9 +216,7 @@ export function minimax(
     beta: number,
 ): number {
     const opponent = player === BLACK ? WHITE : BLACK;
-    const legalMoves: Move[] = orderMoves(
-        getValidMovesForPlayer(board, player),
-    );
+    const legalMoves: Move[] = getValidMovesForPlayer(board, player);
 
     if (depth === 0 || legalMoves.length === 0) {
         return evaluateBoard(board, player);
@@ -223,10 +239,10 @@ export function minimax(
         }
         return maxEval;
     } else {
-        let minEval = Infinity;
+        let minEval: number = Infinity;
         for (const move of legalMoves) {
-            const newBoard = applyMoveForPlayer(board, player, move);
-            const evaluation = minimax(
+            const newBoard: Board = applyMoveForPlayer(board, player, move);
+            const evaluation: number = minimax(
                 newBoard,
                 depth - 1,
                 opponent,
@@ -235,27 +251,34 @@ export function minimax(
             );
             minEval = Math.min(minEval, evaluation);
             beta = Math.min(beta, evaluation);
-            if (beta <= alpha) break; // Alpha cutoff
+            if (beta <= alpha) {
+                break;
+            }
         }
         return minEval;
     }
 }
+
 export function findBestMoveForPlayer(
     board: Board,
     player: Player,
     depth: number,
 ): Move | null {
+    const opponent = player === BLACK ? WHITE : BLACK;
     let bestMove: Move | null = null;
     let bestScore = -Infinity;
-
-    const legalMoves = orderMoves(getValidMovesForPlayer(board, player));
+    const legalMoves: Move[] = orderMoves(
+        getValidMovesForPlayer(board, player),
+        board,
+        player,
+    );
 
     for (const move of legalMoves) {
-        const newBoard = applyMoveForPlayer(board, player, move);
-        const score = -minimax(
+        const newBoard: Board = applyMoveForPlayer(board, player, move);
+        const score: number = -minimax(
             newBoard,
             depth - 1,
-            player === BLACK ? WHITE : BLACK,
+            opponent,
             -Infinity,
             Infinity,
         );
@@ -266,4 +289,39 @@ export function findBestMoveForPlayer(
     }
 
     return bestMove;
+}
+
+export function getDifficultyDepth(
+    difficulty: Difficulty,
+    numberOfMoves: number,
+): number {
+    if (difficulty === Difficulty.EASY) {
+        if (numberOfMoves < 32) {
+            return 1;
+        } else {
+            return 3;
+        }
+    }
+
+    if (difficulty === Difficulty.MEDIUM) {
+        if (numberOfMoves < 16) {
+            return 3;
+        } else {
+            return 5;
+        }
+    }
+
+    if (difficulty === Difficulty.HARD) {
+        if (numberOfMoves < 8) {
+            return 3;
+        }
+
+        if (numberOfMoves < 16) {
+            return 5;
+        }
+
+        return 7;
+    }
+
+    return 1;
 }
