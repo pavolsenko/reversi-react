@@ -6,37 +6,17 @@ import {
     Player,
     WHITE,
     DIRECTIONS,
-    Field,
 } from '../interfaces/game';
 
 export function getStartGame(): Board {
-    const board: Board = [[], [], [], [], [], [], [], []];
+    const board: Board = Array.from({ length: 8 }, () =>
+        Array.from({ length: 8 }, () => ({ type: EMPTY })),
+    );
 
-    for (let y = 0; y < 8; y++) {
-        for (let x = 0; x < 8; x++) {
-            if (y === 3 && x === 3) {
-                board[x][y] = { type: WHITE };
-                continue;
-            }
-
-            if (y === 3 && x === 4) {
-                board[x][y] = { type: BLACK };
-                continue;
-            }
-
-            if (y === 4 && x === 3) {
-                board[x][y] = { type: BLACK };
-                continue;
-            }
-
-            if (y === 4 && x === 4) {
-                board[x][y] = { type: WHITE };
-                continue;
-            }
-
-            board[x][y] = { type: EMPTY };
-        }
-    }
+    board[3][3].type = WHITE;
+    board[3][4].type = BLACK;
+    board[4][3].type = BLACK;
+    board[4][4].type = WHITE;
 
     return board;
 }
@@ -125,10 +105,11 @@ export function applyMoveForPlayer(
     player: Player,
     move: Move,
 ): Board {
-    const newBoard: Board = board.map((fields: Field[]): Field[] => [
-        ...fields,
-    ]);
-    const opponent = player === BLACK ? WHITE : BLACK;
+    const newBoard: Board = board.map((row) =>
+        row.map((field) => ({ ...field })),
+    );
+
+    const opponent: Player = player === BLACK ? WHITE : BLACK;
     newBoard[move.x][move.y].type = player;
 
     for (const [dx, dy] of DIRECTIONS) {
@@ -160,6 +141,55 @@ export function applyMoveForPlayer(
     return newBoard;
 }
 
+function orderMoves(moves: Move[]): Move[] {
+    return moves.sort((a, b) => {
+        const corners = [
+            { x: 0, y: 0 },
+            { x: 0, y: 7 },
+            { x: 7, y: 0 },
+            { x: 7, y: 7 },
+        ];
+        const isCorner = (move: Move) =>
+            corners.some(
+                (corner) => corner.x === move.x && corner.y === move.y,
+            );
+
+        if (isCorner(b)) {
+            return 1;
+        }
+        if (isCorner(a)) {
+            return -1;
+        }
+
+        return 0;
+    });
+}
+
+function evaluateBoard(board: Board, player: Player): number {
+    const weights = [
+        [100, -20, 10, 5, 5, 10, -20, 100],
+        [-20, -50, -2, -2, -2, -2, -50, -20],
+        [10, -2, 5, 1, 1, 5, -2, 10],
+        [5, -2, 1, 0, 0, 1, -2, 5],
+        [5, -2, 1, 0, 0, 1, -2, 5],
+        [10, -2, 5, 1, 1, 5, -2, 10],
+        [-20, -50, -2, -2, -2, -2, -50, -20],
+        [100, -20, 10, 5, 5, 10, -20, 100],
+    ];
+
+    let score = 0;
+    for (let y = 0; y < 8; y++) {
+        for (let x = 0; x < 8; x++) {
+            if (board[y][x].type === player) {
+                score += weights[y][x];
+            } else if (board[y][x].type !== EMPTY) {
+                score -= weights[y][x];
+            }
+        }
+    }
+    return score;
+}
+
 export function minimax(
     board: Board,
     depth: number,
@@ -167,29 +197,49 @@ export function minimax(
     alpha: number,
     beta: number,
 ): number {
-    const legalMoves: Move[] = getValidMovesForPlayer(board, player);
+    const opponent = player === BLACK ? WHITE : BLACK;
+    const legalMoves: Move[] = orderMoves(
+        getValidMovesForPlayer(board, player),
+    );
 
-    if (depth === 0) {
-        return countItemsOnBoard(board, player);
+    if (depth === 0 || legalMoves.length === 0) {
+        return evaluateBoard(board, player);
     }
 
-    if (legalMoves.length === 0) {
-        return countItemsOnBoard(board, player);
-    }
-
-    let maxEval = -Infinity;
-    for (const move of legalMoves) {
-        const newBoard = applyMoveForPlayer(board, player, move);
-        const evaluate = minimax(newBoard, depth - 1, player, alpha, beta);
-        maxEval = Math.max(maxEval, evaluate);
-        alpha = Math.max(alpha, evaluate);
-        if (beta <= alpha) {
-            break;
+    if (player === BLACK) {
+        let maxEval = -Infinity;
+        for (const move of legalMoves) {
+            const newBoard = applyMoveForPlayer(board, player, move);
+            const evaluation = minimax(
+                newBoard,
+                depth - 1,
+                opponent,
+                alpha,
+                beta,
+            );
+            maxEval = Math.max(maxEval, evaluation);
+            alpha = Math.max(alpha, evaluation);
+            if (beta <= alpha) break;
         }
+        return maxEval;
+    } else {
+        let minEval = Infinity;
+        for (const move of legalMoves) {
+            const newBoard = applyMoveForPlayer(board, player, move);
+            const evaluation = minimax(
+                newBoard,
+                depth - 1,
+                opponent,
+                alpha,
+                beta,
+            );
+            minEval = Math.min(minEval, evaluation);
+            beta = Math.min(beta, evaluation);
+            if (beta <= alpha) break; // Alpha cutoff
+        }
+        return minEval;
     }
-    return maxEval;
 }
-
 export function findBestMoveForPlayer(
     board: Board,
     player: Player,
@@ -197,15 +247,23 @@ export function findBestMoveForPlayer(
 ): Move | null {
     let bestMove: Move | null = null;
     let bestScore = -Infinity;
-    const legalMoves = getValidMovesForPlayer(board, player);
+
+    const legalMoves = orderMoves(getValidMovesForPlayer(board, player));
 
     for (const move of legalMoves) {
         const newBoard = applyMoveForPlayer(board, player, move);
-        const score = minimax(newBoard, depth - 1, player, -Infinity, Infinity);
+        const score = -minimax(
+            newBoard,
+            depth - 1,
+            player === BLACK ? WHITE : BLACK,
+            -Infinity,
+            Infinity,
+        );
         if (score > bestScore) {
             bestScore = score;
             bestMove = move;
         }
     }
+
     return bestMove;
 }

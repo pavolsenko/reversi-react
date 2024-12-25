@@ -118,8 +118,8 @@ describe('game helper:', () => {
                 y: 0,
             });
             expect(findBestMoveForPlayer(basicGame1, WHITE, 6)).toEqual({
-                x: 4,
-                y: 5,
+                x: 3,
+                y: 2,
             });
         });
     });

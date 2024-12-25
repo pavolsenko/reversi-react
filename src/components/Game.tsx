@@ -1,7 +1,7 @@
 import { useEffect, useState, MouseEvent } from 'react';
 import { Box, Card, CardActions, CardContent, CardHeader } from '@mui/material';
 
-import { Difficulty, WHITE } from '../interfaces/game';
+import { Difficulty } from '../interfaces/game';
 import { GameSettings } from './GameSettings';
 import { GameTitle } from './GameTitle.tsx';
 import { Grid } from './grid/Grid.tsx';
@@ -17,7 +17,7 @@ export function Game() {
         resetGame,
         isGameOver,
         currentPlayer,
-        onMove,
+        onWhiteMove,
         whiteCount,
         blackCount,
         board,
@@ -30,7 +30,7 @@ export function Game() {
     }, [isGameOver]);
 
     function onFieldClick(x: number, y: number) {
-        onMove(WHITE, x, y);
+        onWhiteMove(x, y);
     }
 
     function onDialogClose() {

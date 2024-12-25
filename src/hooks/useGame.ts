@@ -21,7 +21,7 @@ import {
 interface UseGame {
     resetGame: () => void;
     isGameOver: boolean;
-    onMove: (player: Player, x: number, y: number) => void;
+    onWhiteMove: (x: number, y: number) => void;
     currentPlayer: Player;
     board: Board;
     whiteCount: number;
@@ -37,10 +37,11 @@ export function useGame(): UseGame {
     const [blackCount, setBlackCount] = useState<number>(2);
     const [isGameOver, setIsGameOver] = useState<boolean>(false);
     const [difficulty, setDifficulty] = useState<number>(0);
+    const [isMoveInProgress, setIsMoveInProgress] = useState<boolean>(false);
 
-    const onMove = useCallback(
-        function (player: Player, x: number, y: number) {
-            if (player !== currentPlayer) {
+    const onWhiteMove = useCallback(
+        function (x: number, y: number) {
+            if (currentPlayer === BLACK || isMoveInProgress) {
                 return;
             }
 
@@ -49,10 +50,15 @@ export function useGame(): UseGame {
                 return;
             }
 
-            const legalMoves: Move[] = getValidMovesForPlayer(
-                board,
-                player,
-            ).filter(function (item: Move) {
+            let legalMoves: Move[] = getValidMovesForPlayer(board, WHITE);
+
+            if (legalMoves.length === 0) {
+                setIsMoveInProgress(true);
+                setCurrentPlayer(BLACK);
+                return;
+            }
+
+            legalMoves = legalMoves.filter(function (item: Move) {
                 return item.x === x && item.y === y;
             });
 
@@ -61,29 +67,21 @@ export function useGame(): UseGame {
             }
 
             setBoard(() => {
-                const newBoard = applyMoveForPlayer(board, player, { x, y });
-
-                const newWhiteLegalMoves = getValidMovesForPlayer(
-                    newBoard,
-                    WHITE,
-                );
+                const newBoard = applyMoveForPlayer(board, WHITE, { x, y });
                 const newBlackLegalMoves = getValidMovesForPlayer(
                     newBoard,
                     BLACK,
                 );
 
-                if (player === WHITE && newBlackLegalMoves.length > 0) {
+                if (newBlackLegalMoves.length > 0) {
+                    setIsMoveInProgress(true);
                     setCurrentPlayer(BLACK);
-                }
-
-                if (player === BLACK && newWhiteLegalMoves.length > 0) {
-                    setCurrentPlayer(WHITE);
                 }
 
                 return newBoard;
             });
         },
-        [board, currentPlayer],
+        [board, currentPlayer, isMoveInProgress],
     );
 
     useEffect(() => {
@@ -95,24 +93,35 @@ export function useGame(): UseGame {
 
         if (blackLegalMoves.length === 0) {
             setCurrentPlayer(WHITE);
+            setIsMoveInProgress(false);
             return;
         }
 
-        const currentDifficulty = difficulty * 2 + 1;
-        let blackMove = findBestMoveForPlayer(board, BLACK, currentDifficulty);
-        if (!blackMove) {
-            blackMove =
-                blackLegalMoves[
-                    Math.floor(Math.random() * blackLegalMoves.length)
-                ];
-        }
-
         setTimeout(function () {
-            const newBoard = applyMoveForPlayer(board, BLACK, blackMove);
-            setBoard(newBoard);
-            setCurrentPlayer(WHITE);
-        }, 1000);
-    }, [board, currentPlayer, onMove, difficulty]);
+            let blackMove: Move | null = findBestMoveForPlayer(
+                board,
+                BLACK,
+                difficulty * 3 + 1,
+            );
+
+            if (!blackMove) {
+                blackMove =
+                    blackLegalMoves[
+                        Math.floor(Math.random() * blackLegalMoves.length)
+                    ];
+            }
+            setBoard((prevBoard: Board): Board => {
+                const newBoard: Board = applyMoveForPlayer(
+                    prevBoard,
+                    BLACK,
+                    blackMove,
+                );
+                setCurrentPlayer(WHITE);
+                setIsMoveInProgress(false);
+                return newBoard;
+            });
+        }, 100);
+    }, [board, currentPlayer, difficulty]);
 
     useEffect(() => {
         setWhiteCount(countItemsOnBoard(board, WHITE));
@@ -131,7 +140,7 @@ export function useGame(): UseGame {
     return {
         resetGame,
         isGameOver,
-        onMove,
+        onWhiteMove,
         board,
         whiteCount,
         blackCount,
