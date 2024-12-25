@@ -1,6 +1,12 @@
 import { MouseEvent } from 'react';
 
-import { Box, Button, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import {
+    Box,
+    Button,
+    ToggleButton,
+    ToggleButtonGroup,
+    useTheme,
+} from '@mui/material';
 
 import { Difficulty } from '../interfaces/game';
 
@@ -16,8 +22,10 @@ interface GameSettingsProps {
 }
 
 export function GameSettings(props: GameSettingsProps) {
+    const theme = useTheme();
+
     return (
-        <Box sx={gameSettingsStyles}>
+        <Box sx={gameSettingsStyles(theme)}>
             <Box>
                 <Button
                     onClick={props.onResetClick}
