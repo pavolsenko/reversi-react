@@ -98,8 +98,8 @@ export function useGame(): UseGame {
             return;
         }
 
-        setTimeout(function () {
-            let blackMove: Move | null = findBestMoveForPlayer(
+        setTimeout(async function () {
+            let blackMove: Move | null = await findBestMoveForPlayer(
                 board,
                 BLACK,
                 getDifficultyDepth(difficulty, whiteCount + blackCount),

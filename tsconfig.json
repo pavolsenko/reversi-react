@@ -1,11 +1,12 @@
 {
-  "files": [],
-  "compilerOptions": {
-    "esModuleInterop": true,
-    "jsx": "react-jsx",
-  },
-  "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
-  ]
+    "files": [],
+    "compilerOptions": {
+        "esModuleInterop": true,
+        "jsx": "react-jsx",
+        "types": ["node", "jest"]
+    },
+    "references": [
+        { "path": "./tsconfig.app.json" },
+        { "path": "./tsconfig.node.json" }
+    ]
 }

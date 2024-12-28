@@ -143,7 +143,7 @@ export function applyMoveForPlayer(
     return newBoard;
 }
 
-function orderMoves(moves: Move[], board: Board, player: Player): Move[] {
+export function orderMoves(moves: Move[], board: Board, player: Player): Move[] {
     const corners: Move[] = [
         { x: 0, y: 0 },
         { x: 0, y: 7 },
@@ -208,7 +208,13 @@ function evaluateBoard(board: Board, player: Player): number {
     return score;
 }
 
-export function minimax(
+const transpositionTable = new Map<string, number>();
+
+function generateHash(board: Board): string {
+    return board.flat().map(field => field.type).join('');
+}
+
+export function minmax(
     board: Board,
     depth: number,
     player: Player,
@@ -219,14 +225,19 @@ export function minimax(
     const legalMoves: Move[] = getValidMovesForPlayer(board, player);
 
     if (depth === 0 || legalMoves.length === 0) {
-        return evaluateBoard(board, player);
+        return countItemsOnBoard(board, player);
+    }
+
+    const hash = generateHash(board);
+    if (transpositionTable.has(hash)) {
+        return transpositionTable.get(hash)!;
     }
 
     if (player === BLACK) {
         let maxEval = -Infinity;
         for (const move of legalMoves) {
             const newBoard = applyMoveForPlayer(board, player, move);
-            const evaluation = minimax(
+            const evaluation = minmax(
                 newBoard,
                 depth - 1,
                 opponent,
@@ -237,12 +248,13 @@ export function minimax(
             alpha = Math.max(alpha, evaluation);
             if (beta <= alpha) break;
         }
+        transpositionTable.set(hash, maxEval);
         return maxEval;
     } else {
         let minEval: number = Infinity;
         for (const move of legalMoves) {
             const newBoard: Board = applyMoveForPlayer(board, player, move);
-            const evaluation: number = minimax(
+            const evaluation: number = minmax(
                 newBoard,
                 depth - 1,
                 opponent,
@@ -255,18 +267,67 @@ export function minimax(
                 break;
             }
         }
+        transpositionTable.set(hash, minEval);
         return minEval;
     }
 }
 
-export function findBestMoveForPlayer(
+export async function minmaxParallel(
+    board: Board,
+    depth: number,
+    player: Player,
+    alpha: number,
+    beta: number,
+): Promise<number> {
+    const opponent = player === BLACK ? WHITE : BLACK;
+    const legalMoves: Move[] = getValidMovesForPlayer(board, player);
+
+    if (depth === 0 || legalMoves.length === 0) {
+        return evaluateBoard(board, player);
+    }
+
+    const workerPromises = legalMoves.map((move) => {
+        const worker = new Worker(new URL('./minmax.worker.ts', import.meta.url), {type: 'module'});
+        const newBoard = applyMoveForPlayer(board, player, move);
+
+        return new Promise<number>((resolve, reject) => {
+            worker.onmessage = (event) => {
+                resolve(event.data);
+                worker.terminate();
+            };
+            worker.onerror = (error) => {
+                reject(error);
+                worker.terminate();
+            };
+
+            worker.postMessage({
+                board: newBoard,
+                depth: depth - 1,
+                player: opponent,
+                alpha,
+                beta,
+            });
+        });
+    });
+
+    if (player === BLACK) {
+        const scores = await Promise.all(workerPromises);
+        return Math.max(...scores);
+    } else {
+        const scores = await Promise.all(workerPromises);
+        return Math.min(...scores);
+    }
+}
+
+export async function findBestMoveForPlayer(
     board: Board,
     player: Player,
     depth: number,
-): Move | null {
+): Promise<Move | null> {
     const opponent = player === BLACK ? WHITE : BLACK;
     let bestMove: Move | null = null;
     let bestScore = -Infinity;
+
     const legalMoves: Move[] = orderMoves(
         getValidMovesForPlayer(board, player),
         board,
@@ -275,13 +336,14 @@ export function findBestMoveForPlayer(
 
     for (const move of legalMoves) {
         const newBoard: Board = applyMoveForPlayer(board, player, move);
-        const score: number = -minimax(
+        const score: number = -(await minmaxParallel(
             newBoard,
             depth - 1,
             opponent,
             -Infinity,
             Infinity,
-        );
+        ));
+
         if (score > bestScore) {
             bestScore = score;
             bestMove = move;

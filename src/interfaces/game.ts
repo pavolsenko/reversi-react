@@ -34,3 +34,11 @@ export enum Difficulty {
     MEDIUM,
     HARD,
 }
+
+export interface MinMaxWorkerData {
+    board: Board,
+    depth: number,
+    player: Player,
+    alpha: number,
+    beta: number,
+}
