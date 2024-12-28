@@ -36,9 +36,9 @@ export enum Difficulty {
 }
 
 export interface MinMaxWorkerData {
-    board: Board,
-    depth: number,
-    player: Player,
-    alpha: number,
-    beta: number,
+    board: Board;
+    depth: number;
+    player: Player;
+    alpha: number;
+    beta: number;
 }

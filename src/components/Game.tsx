@@ -23,6 +23,7 @@ export function Game() {
         board,
         difficulty,
         setDifficulty,
+        isMoveInProgress,
     } = useGame();
 
     useEffect(() => {
@@ -71,6 +72,7 @@ export function Game() {
                             difficulty={difficulty}
                             onDifficultyChange={onDifficultyChange}
                             onResetClick={resetGame}
+                            isMoveInProgress={isMoveInProgress}
                         />
                     </CardActions>
                 </Card>

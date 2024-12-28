@@ -1,17 +1,9 @@
-import {
-    BLACK,
-    WHITE,
-    MinMaxWorkerData,
-} from '../interfaces/game';
-import {
-    applyMoveForPlayer,
-    getValidMovesForPlayer,
-    countItemsOnBoard,
-    minmax,
-} from './game';
+import { BLACK, WHITE, MinMaxWorkerData } from '../interfaces/game';
+import { countItemsOnBoard } from './board';
+import { applyMoveForPlayer, getValidMovesForPlayer, minmax } from './game';
 
 onmessage = (event: MessageEvent<MinMaxWorkerData>) => {
-    const { board, depth, player, } = event.data;
+    const { board, depth, player } = event.data;
     let alpha = event.data.alpha;
     let beta = event.data.beta;
     const opponent = player === BLACK ? WHITE : BLACK;

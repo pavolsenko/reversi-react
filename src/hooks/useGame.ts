@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
-    applyMoveForPlayer,
     checkIsGameOver,
     countItemsOnBoard,
-    findBestMoveForPlayer,
-    getValidMovesForPlayer,
     getStartGame,
+} from '../helpers/board';
+import {
+    applyMoveForPlayer,
+    getValidMovesForPlayer,
     getDifficultyDepth,
+    findBestMoveForPlayer,
 } from '../helpers/game';
 
 import {
@@ -29,6 +31,7 @@ interface UseGame {
     blackCount: number;
     difficulty: Difficulty;
     setDifficulty: (difficulty: Difficulty) => void;
+    isMoveInProgress: boolean;
 }
 
 export function useGame(): UseGame {
@@ -148,5 +151,6 @@ export function useGame(): UseGame {
         currentPlayer,
         difficulty,
         setDifficulty,
+        isMoveInProgress,
     };
 }

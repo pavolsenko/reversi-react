@@ -4,52 +4,11 @@ import {
     Difficulty,
     DIRECTIONS,
     EMPTY,
-    Field,
     Move,
     Player,
     WHITE,
 } from '../interfaces/game';
-
-export function getStartGame(): Board {
-    const board: Board = Array.from({ length: 8 }, (): Field[] =>
-        Array.from({ length: 8 }, (): Field => ({ type: EMPTY })),
-    );
-
-    board[3][3].type = WHITE;
-    board[3][4].type = BLACK;
-    board[4][3].type = BLACK;
-    board[4][4].type = WHITE;
-
-    return board;
-}
-
-export function checkIsGameOver(board: Board): boolean {
-    const white: number = countItemsOnBoard(board, WHITE);
-    const black: number = countItemsOnBoard(board, BLACK);
-
-    if (white + black === 64) {
-        return true;
-    }
-
-    const whiteValidMoves: Move[] = getValidMovesForPlayer(board, WHITE);
-    const blackValidMoves: Move[] = getValidMovesForPlayer(board, BLACK);
-
-    return whiteValidMoves.length === 0 && blackValidMoves.length === 0;
-}
-
-export function countItemsOnBoard(board: Board, player: Player): number {
-    let count: number = 0;
-
-    for (let y = 0; y < 8; y++) {
-        for (let x = 0; x < 8; x++) {
-            if (board[x][y].type === player) {
-                count++;
-            }
-        }
-    }
-
-    return count;
-}
+import { countItemsOnBoard } from './board';
 
 export function isValidMove(board: Board, move: Move, player: Player): boolean {
     if (board[move.x][move.y].type !== EMPTY) {
@@ -143,7 +102,11 @@ export function applyMoveForPlayer(
     return newBoard;
 }
 
-export function orderMoves(moves: Move[], board: Board, player: Player): Move[] {
+export function orderMoves(
+    moves: Move[],
+    board: Board,
+    player: Player,
+): Move[] {
     const corners: Move[] = [
         { x: 0, y: 0 },
         { x: 0, y: 7 },
@@ -211,7 +174,10 @@ function evaluateBoard(board: Board, player: Player): number {
 const transpositionTable = new Map<string, number>();
 
 function generateHash(board: Board): string {
-    return board.flat().map(field => field.type).join('');
+    return board
+        .flat()
+        .map((field) => field.type)
+        .join('');
 }
 
 export function minmax(
@@ -246,15 +212,17 @@ export function minmax(
             );
             maxEval = Math.max(maxEval, evaluation);
             alpha = Math.max(alpha, evaluation);
-            if (beta <= alpha) break;
+            if (beta <= alpha) {
+                break;
+            }
         }
         transpositionTable.set(hash, maxEval);
         return maxEval;
     } else {
-        let minEval: number = Infinity;
+        let minEval = Infinity;
         for (const move of legalMoves) {
-            const newBoard: Board = applyMoveForPlayer(board, player, move);
-            const evaluation: number = minmax(
+            const newBoard = applyMoveForPlayer(board, player, move);
+            const evaluation = minmax(
                 newBoard,
                 depth - 1,
                 opponent,
@@ -287,7 +255,10 @@ export async function minmaxParallel(
     }
 
     const workerPromises = legalMoves.map((move) => {
-        const worker = new Worker(new URL('./minmax.worker.ts', import.meta.url), {type: 'module'});
+        const worker = new Worker(
+            new URL('./minmax.worker.ts', import.meta.url),
+            { type: 'module' },
+        );
         const newBoard = applyMoveForPlayer(board, player, move);
 
         return new Promise<number>((resolve, reject) => {
@@ -357,33 +328,30 @@ export function getDifficultyDepth(
     difficulty: Difficulty,
     numberOfMoves: number,
 ): number {
-    if (difficulty === Difficulty.EASY) {
-        if (numberOfMoves < 32) {
-            return 1;
-        } else {
-            return 3;
-        }
-    }
+    const EARLY_GAME_MOVES = 16;
+    const MID_GAME_MOVES = 32;
 
-    if (difficulty === Difficulty.MEDIUM) {
-        if (numberOfMoves < 16) {
-            return 3;
-        } else {
-            return 5;
-        }
-    }
+    const depthMapping = {
+        [Difficulty.EASY]: { early: 1, mid: 2, late: 3 },
+        [Difficulty.MEDIUM]: { early: 3, mid: 4, late: 5 },
+        [Difficulty.HARD]: { early: 5, mid: 6, late: 7 },
+    };
 
-    if (difficulty === Difficulty.HARD) {
-        if (numberOfMoves < 8) {
-            return 3;
-        }
+    const stage =
+        numberOfMoves < EARLY_GAME_MOVES
+            ? 'early'
+            : numberOfMoves < MID_GAME_MOVES
+              ? 'mid'
+              : 'late';
 
-        if (numberOfMoves < 16) {
-            return 5;
-        }
+    const depth = depthMapping[difficulty][stage];
 
-        return 7;
-    }
+    const dynamicAdjustment = Math.max(
+        0,
+        Math.min(2, Math.floor(64 - numberOfMoves) / 10),
+    );
 
-    return 1;
+    console.log('CURRENT DEPTH', depth, dynamicAdjustment);
+
+    return depth + dynamicAdjustment;
 }
