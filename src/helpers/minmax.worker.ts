@@ -7,16 +7,16 @@ onmessage = (event: MessageEvent<MinMaxWorkerData>) => {
     let alpha = event.data.alpha;
     let beta = event.data.beta;
     const opponent = player === BLACK ? WHITE : BLACK;
-    const legalMoves = getValidMovesForPlayer(board, player);
+    const validMoves = getValidMovesForPlayer(board, player);
 
-    if (depth === 0 || legalMoves.length === 0) {
+    if (depth === 0 || validMoves.length === 0) {
         postMessage(countItemsOnBoard(board, player));
         return;
     }
 
     let score = player === BLACK ? -Infinity : Infinity;
 
-    for (const move of legalMoves) {
+    for (const move of validMoves) {
         const newBoard = applyMoveForPlayer(board, player, move);
         const evaluation = minmax(newBoard, depth - 1, opponent, alpha, beta);
 

@@ -54,30 +54,30 @@ export function useGame(): UseGame {
                 return;
             }
 
-            let legalMoves: Move[] = getValidMovesForPlayer(board, WHITE);
+            let validMoves: Move[] = getValidMovesForPlayer(board, WHITE);
 
-            if (legalMoves.length === 0) {
+            if (validMoves.length === 0) {
                 setIsMoveInProgress(true);
                 setCurrentPlayer(BLACK);
                 return;
             }
 
-            legalMoves = legalMoves.filter(function (item: Move) {
+            validMoves = validMoves.filter(function (item: Move) {
                 return item.x === x && item.y === y;
             });
 
-            if (legalMoves.length === 0) {
+            if (validMoves.length === 0) {
                 return;
             }
 
             setBoard(() => {
                 const newBoard = applyMoveForPlayer(board, WHITE, { x, y });
-                const newBlackLegalMoves = getValidMovesForPlayer(
+                const newBlackValidMoves = getValidMovesForPlayer(
                     newBoard,
                     BLACK,
                 );
 
-                if (newBlackLegalMoves.length > 0) {
+                if (newBlackValidMoves.length > 0) {
                     setIsMoveInProgress(true);
                     setCurrentPlayer(BLACK);
                 }
@@ -93,9 +93,9 @@ export function useGame(): UseGame {
             return;
         }
 
-        const blackLegalMoves = getValidMovesForPlayer(board, BLACK);
+        const blackValidMoves = getValidMovesForPlayer(board, BLACK);
 
-        if (blackLegalMoves.length === 0) {
+        if (blackValidMoves.length === 0) {
             setCurrentPlayer(WHITE);
             setIsMoveInProgress(false);
             return;
@@ -110,8 +110,8 @@ export function useGame(): UseGame {
 
             if (!blackMove) {
                 blackMove =
-                    blackLegalMoves[
-                        Math.floor(Math.random() * blackLegalMoves.length)
+                    blackValidMoves[
+                        Math.floor(Math.random() * blackValidMoves.length)
                     ];
             }
             setBoard((prevBoard: Board): Board => {
