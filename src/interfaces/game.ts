@@ -18,17 +18,6 @@ export interface Move {
     y: number;
 }
 
-export const DIRECTIONS: number[][] = [
-    [-1, -1],
-    [-1, 0],
-    [-1, 1],
-    [0, -1],
-    [0, 1],
-    [1, -1],
-    [1, 0],
-    [1, 1],
-];
-
 export enum Difficulty {
     EASY,
     MEDIUM,

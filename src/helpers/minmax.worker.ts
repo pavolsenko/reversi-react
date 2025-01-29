@@ -1,5 +1,4 @@
 import { BLACK, WHITE, MinMaxWorkerData } from '../interfaces/game';
-import { countItemsOnBoard } from './board';
 import { applyMoveForPlayer, getValidMovesForPlayer, minmax } from './game';
 
 onmessage = (event: MessageEvent<MinMaxWorkerData>) => {
@@ -8,11 +7,6 @@ onmessage = (event: MessageEvent<MinMaxWorkerData>) => {
     let beta = event.data.beta;
     const opponent = player === BLACK ? WHITE : BLACK;
     const validMoves = getValidMovesForPlayer(board, player);
-
-    if (depth === 0 || validMoves.length === 0) {
-        postMessage(countItemsOnBoard(board, player));
-        return;
-    }
 
     let score = player === BLACK ? -Infinity : Infinity;
 

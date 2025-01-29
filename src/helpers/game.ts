@@ -1,9 +1,10 @@
+import { CORNERS, DIRECTIONS } from '../constants/game';
 import {
     BLACK,
     Board,
     Difficulty,
-    DIRECTIONS,
     EMPTY,
+    Field,
     Move,
     Player,
     WHITE,
@@ -66,8 +67,8 @@ export function applyMoveForPlayer(
     player: Player,
     move: Move,
 ): Board {
-    const newBoard: Board = board.map((row) =>
-        row.map((field) => ({ ...field })),
+    const newBoard: Board = board.map((row: Field[]) =>
+        row.map((field: Field) => ({ ...field })),
     );
 
     const opponent: Player = player === BLACK ? WHITE : BLACK;
@@ -107,15 +108,8 @@ export function orderMoves(
     board: Board,
     player: Player,
 ): Move[] {
-    const corners: Move[] = [
-        { x: 0, y: 0 },
-        { x: 0, y: 7 },
-        { x: 7, y: 0 },
-        { x: 7, y: 7 },
-    ];
-
     const isCorner = (move: Move): boolean =>
-        corners.some(
+        CORNERS.some(
             (corner: Move): boolean =>
                 corner.x === move.x && corner.y === move.y,
         );
@@ -338,9 +332,9 @@ export function getDifficultyDepth(
     const MID_GAME_MOVES = 32;
 
     const depthMapping = {
-        [Difficulty.EASY]: { early: 1, mid: 1, late: 1 },
-        [Difficulty.MEDIUM]: { early: 2, mid: 3, late: 4 },
-        [Difficulty.HARD]: { early: 3, mid: 4, late: 5 },
+        [Difficulty.EASY]: { early: 2, mid: 2, late: 4 },
+        [Difficulty.MEDIUM]: { early: 3, mid: 2, late: 5 },
+        [Difficulty.HARD]: { early: 4, mid: 2, late: 6 },
     };
 
     const stage =
