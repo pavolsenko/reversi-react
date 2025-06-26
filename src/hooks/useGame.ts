@@ -3,13 +3,13 @@ import {
     checkIsGameOver,
     countItemsOnBoard,
     getStartGame,
-} from '../helpers/board';
+} from '@/helpers/board';
 import {
     applyMoveForPlayer,
     getValidMovesForPlayer,
     getDifficultyDepth,
     findBestMoveForPlayer,
-} from '../helpers/game';
+} from '@/helpers/game';
 
 import {
     BLACK,
@@ -19,7 +19,7 @@ import {
     Move,
     Player,
     WHITE,
-} from '../interfaces/game';
+} from '@/interfaces/game';
 
 interface UseGame {
     resetGame: () => void;
@@ -50,7 +50,7 @@ export function useGame(): UseGame {
             }
 
             const field = board[x][y];
-            if (field.type !== EMPTY) {
+            if (field !== EMPTY) {
                 return;
             }
 
@@ -106,6 +106,7 @@ export function useGame(): UseGame {
                 board,
                 BLACK,
                 getDifficultyDepth(difficulty, whiteCount + blackCount),
+                difficulty,
             );
 
             if (!blackMove) {

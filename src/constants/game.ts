@@ -1,4 +1,4 @@
-import { Move } from '../interfaces/game';
+import { Move } from '@/interfaces/game';
 
 export const DIRECTIONS: number[][] = [
     [-1, -1],
@@ -15,6 +15,16 @@ export const CORNERS: Move[] = [
     { x: 0, y: 0 },
     { x: 0, y: 7 },
     { x: 7, y: 0 },
-    { x: 7, y: 0 },
     { x: 7, y: 7 },
+];
+
+export const BOARD_WEIGHTS: number[][] = [
+    [100, -20, 10, 5, 5, 10, -20, 100],
+    [-20, -50, -2, -2, -2, -2, -50, -20],
+    [10, -2, 5, 1, 1, 5, -2, 10],
+    [5, -2, 1, 0, 0, 1, -2, 5],
+    [5, -2, 1, 0, 0, 1, -2, 5],
+    [10, -2, 5, 1, 1, 5, -2, 10],
+    [-20, -50, -2, -2, -2, -2, -50, -20],
+    [100, -20, 10, 5, 5, 10, -20, 100],
 ];

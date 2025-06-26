@@ -1,15 +1,10 @@
 export type Board = Field[][];
 
-export interface Field {
-    type: FieldType;
-    coordinates?: Move;
-}
-
 export const EMPTY = 'empty';
 export const WHITE = 'white';
 export const BLACK = 'black';
 
-export type FieldType = typeof EMPTY | typeof BLACK | typeof WHITE;
+export type Field = typeof EMPTY | typeof BLACK | typeof WHITE;
 
 export type Player = typeof BLACK | typeof WHITE;
 

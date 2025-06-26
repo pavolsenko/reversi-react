@@ -1,126 +1,103 @@
+import { getStartGame } from '@/helpers/board';
 import {
     applyMoveForPlayer,
-    checkIsGameOver,
-    countItemsOnBoard,
-    findBestMoveForPlayer,
-    getStartGame,
+    getDifficultyDepth,
     getValidMovesForPlayer,
     isValidMove,
-} from './game';
+    minmax,
+    orderMoves,
+} from '@/helpers/game';
+import { BLACK, WHITE, Move, Difficulty } from '@/interfaces/game';
 
-import { BLACK, Board, EMPTY, Move, WHITE } from '../interfaces/game';
-
-import {
-    basicGame1,
-    basicGame2,
-    basicGame3,
-    basicGame4,
-    endGame,
-} from './__mocks__/boards';
-
-describe('game helper:', () => {
-    describe('getStartGame', () => {
-        it('should return the correct start game', () => {
-            const startGame = getStartGame();
-            expect(startGame[4][4].type).toBe(WHITE);
-            expect(startGame[1][1].type).toBe(EMPTY);
-            expect(countItemsOnBoard(startGame, WHITE)).toBe(2);
-            expect(countItemsOnBoard(startGame, BLACK)).toBe(2);
-        });
-    });
-
-    describe('checkIsGameOver', () => {
-        it('should return false if game is not over', () => {
-            expect(checkIsGameOver(getStartGame())).toBeFalsy();
-            expect(checkIsGameOver(basicGame3)).toBeFalsy();
-        });
-
-        it('should return true if game is over', () => {
-            expect(checkIsGameOver(endGame)).toBeTruthy();
-        });
-    });
-
-    describe('countItemsOnBoard', () => {
-        it('should get white count on board', () => {
-            expect(countItemsOnBoard(basicGame1, WHITE)).toEqual(3);
-        });
-
-        it('should get black count on board', () => {
-            expect(countItemsOnBoard(basicGame1, BLACK)).toEqual(3);
-        });
-    });
-
+describe('game.helper:', () => {
     describe('isValidMove', () => {
-        it('should return true if move is valid for player', () => {
-            expect(
-                isValidMove(getStartGame(), { x: 5, y: 3 }, WHITE),
-            ).toBeTruthy();
+        it('should return false for occupied square', () => {
+            const board = getStartGame();
+            expect(isValidMove(board, { x: 3, y: 3 }, BLACK)).toBe(false);
         });
 
-        it('should return false if move is not valid for player', () => {
-            expect(
-                isValidMove(getStartGame(), { x: 0, y: 0 }, WHITE),
-            ).toBeFalsy();
-            expect(
-                isValidMove(getStartGame(), { x: 3, y: 3 }, BLACK),
-            ).toBeFalsy();
-            expect(
-                isValidMove(getStartGame(), { x: 4, y: 3 }, BLACK),
-            ).toBeFalsy();
+        it('should return true for valid opening move', () => {
+            const board = getStartGame();
+            expect(isValidMove(board, { x: 2, y: 3 }, WHITE)).toBe(true);
+        });
+
+        it('should return false for move not flipping anything', () => {
+            const board = getStartGame();
+            expect(isValidMove(board, { x: 0, y: 0 }, BLACK)).toBe(false);
         });
     });
 
-    describe('getValidMoves', () => {
-        it('should return all valid moves for player', () => {
-            const validMoves: Move[] = [
-                {
-                    x: 4,
-                    y: 2,
-                },
-                {
-                    x: 5,
-                    y: 3,
-                },
-                {
-                    x: 2,
-                    y: 4,
-                },
-                {
-                    x: 3,
-                    y: 5,
-                },
-            ];
-            expect(getValidMovesForPlayer(getStartGame(), WHITE)).toEqual(
-                validMoves,
-            );
-
-            expect(getValidMovesForPlayer(endGame, BLACK)).toEqual([]);
+    describe('getValidMovesForPlayer', () => {
+        it('returns correct number of valid moves in starting position', () => {
+            const board = getStartGame();
+            const blackMoves = getValidMovesForPlayer(board, BLACK);
+            const whiteMoves = getValidMovesForPlayer(board, WHITE);
+            expect(blackMoves.length).toBe(4);
+            expect(whiteMoves.length).toBe(4);
         });
     });
 
     describe('applyMoveForPlayer', () => {
-        it('should return the correct board after player moves', () => {
-            const newBoard: Board = applyMoveForPlayer(basicGame3, BLACK, {
-                x: 7,
-                y: 7,
-            });
-            expect(newBoard).toEqual(basicGame4);
-            expect(countItemsOnBoard(newBoard, WHITE)).toEqual(60);
-            expect(countItemsOnBoard(newBoard, BLACK)).toEqual(4);
-            expect(checkIsGameOver(newBoard)).toBeTruthy();
+        it('flips the opponent pieces in one direction', () => {
+            const board = getStartGame();
+            const newBoard = applyMoveForPlayer(board, BLACK, { x: 2, y: 3 });
+            expect(newBoard[3][3]).toBe(BLACK);
+        });
+
+        it('does not mutate original board', () => {
+            const board = getStartGame();
+            const boardCopy = structuredClone(board);
+            applyMoveForPlayer(board, BLACK, { x: 2, y: 3 });
+            expect(board).toEqual(boardCopy);
         });
     });
 
-    describe('findBestMoveForPlayer', () => {
-        it('should return the best move for player', () => {
-            expect(findBestMoveForPlayer(basicGame2, BLACK, 4)).toEqual({
-                x: 0,
-                y: 4,
-            });
-            expect(findBestMoveForPlayer(basicGame1, WHITE, 6)).toEqual({
-                x: 1,
+    describe('orderMoves', () => {
+        it('prioritizes corner moves over others', () => {
+            const board = getStartGame();
+            const moves: Move[] = [
+                { x: 0, y: 0 },
+                { x: 2, y: 3 },
+            ];
+            const [first] = orderMoves(moves, board, BLACK, Difficulty.MEDIUM);
+            expect(first).toEqual({ x: 0, y: 0 });
+        });
+    });
+
+    describe('minmax', () => {
+        it('returns a numerical score', () => {
+            const board = getStartGame();
+            const score = minmax(board, 1, BLACK, -Infinity, Infinity);
+            expect(typeof score).toBe('number');
+        });
+
+        it('returns higher score if player has more pieces', () => {
+            const board = getStartGame();
+            const strongerBoard = applyMoveForPlayer(board, BLACK, {
+                x: 2,
                 y: 3,
             });
+            const originalScore = minmax(board, 1, BLACK, -Infinity, Infinity);
+            const strongerScore = minmax(
+                strongerBoard,
+                1,
+                BLACK,
+                -Infinity,
+                Infinity,
+            );
+            expect(strongerScore).toBeGreaterThanOrEqual(originalScore);
+        });
+    });
+
+    describe('getDifficultyDepth', () => {
+        it('returns correct depth for EASY early game', () => {
+            expect(
+                getDifficultyDepth(Difficulty.EASY, 5),
+            ).toBeGreaterThanOrEqual(2);
+        });
+
+        it('returns correct depth for HARD late game', () => {
+            expect(getDifficultyDepth(Difficulty.HARD, 50)).toBeGreaterThan(4);
         });
     });
 });

@@ -1,10 +1,10 @@
 import { ReactNode } from 'react';
 import { Box, useTheme } from '@mui/material';
 
-import { Board } from '../../interfaces/game';
-import { GridItem } from './GridItem';
+import { Board } from '@/interfaces/game';
+import { GridItem } from '@/components/grid/GridItem';
 
-import { gridStyles } from './styles';
+import { gridStyles } from './gridStyles';
 
 export interface GridProps {
     board: Board;

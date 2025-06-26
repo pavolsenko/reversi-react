@@ -8,9 +8,9 @@ import {
     useTheme,
 } from '@mui/material';
 
-import { Difficulty } from '../interfaces/game';
+import { Difficulty } from '@/interfaces/game';
 
-import { gameSettingsStyles } from './styles.ts';
+import { gameSettingsStyles } from './gameStyles.ts';
 
 interface GameSettingsProps {
     difficulty: Difficulty;

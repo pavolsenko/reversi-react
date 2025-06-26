@@ -1,13 +1,13 @@
 import { useCallback } from 'react';
 import { Box } from '@mui/material';
 
-import { BLACK, Field, WHITE } from '../../interfaces/game';
+import { BLACK, Field, WHITE } from '@/interfaces/game';
 
 import {
     blackGridItemStyles,
     gridItemWrapperItemStyles,
     whiteGridItemStyles,
-} from './styles.ts';
+} from './gridStyles.ts';
 
 export interface GridItemProps {
     field: Field;
@@ -17,11 +17,11 @@ export interface GridItemProps {
 export function GridItem(props: GridItemProps) {
     const renderGridItem = useCallback(
         function () {
-            if (props.field.type === BLACK) {
+            if (props.field === BLACK) {
                 return <Box sx={blackGridItemStyles}>&nbsp;</Box>;
             }
 
-            if (props.field.type === WHITE) {
+            if (props.field === WHITE) {
                 return <Box sx={whiteGridItemStyles}>&nbsp;</Box>;
             }
 
