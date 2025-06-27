@@ -1,7 +1,7 @@
-import { getStartGame } from '@/helpers/board';
 import {
     applyMoveForPlayer,
     getDifficultyDepth,
+    getStartGame,
     getValidMovesForPlayer,
     isValidMove,
     minmax,

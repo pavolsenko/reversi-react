@@ -1,6 +1,6 @@
-import { CircularProgress } from '@mui/material';
+import { Box } from '@mui/material';
 
-import { BLACK, Player } from '../interfaces/game';
+import { Player } from '@/interfaces/game';
 
 interface GameTitleProps {
     whiteCount: number;
@@ -12,16 +12,18 @@ interface GameTitleProps {
 export function GameTitle(props: GameTitleProps) {
     return (
         <>
-            {'White ' + props.whiteCount + ':' + props.blackCount + ' Black'}
-            {!props.isGameOver
-                ? '| Next turn: ' + props.currentPlayer.toUpperCase()
-                : null}
-            {props.currentPlayer === BLACK ? (
-                <CircularProgress
-                    size={12}
-                    sx={{ ml: 1 }}
-                />
-            ) : null}
+            <Box>
+                {'White ' +
+                    props.whiteCount +
+                    ':' +
+                    props.blackCount +
+                    ' Black'}
+            </Box>
+            <Box>
+                {!props.isGameOver
+                    ? 'Next turn: ' + props.currentPlayer.toUpperCase()
+                    : null}
+            </Box>
         </>
     );
 }

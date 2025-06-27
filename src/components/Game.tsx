@@ -1,14 +1,15 @@
 import { useEffect, useState, MouseEvent } from 'react';
 import { Box, Card, CardActions, CardContent, CardHeader } from '@mui/material';
 
-import { Difficulty } from '../interfaces/game';
-import { GameSettings } from './GameSettings';
-import { GameTitle } from './GameTitle.tsx';
-import { Grid } from './grid/Grid.tsx';
-import { GameOverDialog } from './GameOverDialog.tsx';
-import { useGame } from '../hooks/useGame';
+import { GameProgress } from '@/components/GameProgress';
+import { BLACK, Difficulty } from '@/interfaces/game';
+import { GameSettings } from '@/components/GameSettings';
+import { GameTitle } from '@/components/GameTitle';
+import { Grid } from '@/components/grid/Grid';
+import { GameOverDialog } from '@/components/GameOverDialog';
+import { useGame } from '@/hooks/useGame';
 
-import { appStyles } from '../styles';
+import { appStyles, cardStyles } from './gameStyles';
 
 export function Game() {
     const [isGameOverDialogOpen, setIsGameOverDialogOpen] =
@@ -49,7 +50,11 @@ export function Game() {
     return (
         <>
             <Box sx={appStyles}>
-                <Card elevation={2}>
+                <Card
+                    elevation={2}
+                    sx={cardStyles}
+                >
+                    <GameProgress inProgress={currentPlayer === BLACK} />
                     <CardHeader
                         title={'Reversi'}
                         subheader={

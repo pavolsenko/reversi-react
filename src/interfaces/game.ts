@@ -26,3 +26,8 @@ export interface MinMaxWorkerData {
     alpha: number;
     beta: number;
 }
+
+export interface MinMaxWorkerResult {
+    score?: number;
+    error?: string;
+}

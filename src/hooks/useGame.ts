@@ -1,22 +1,19 @@
 import { useCallback, useEffect, useState } from 'react';
-import {
-    checkIsGameOver,
-    countItemsOnBoard,
-    getStartGame,
-} from '@/helpers/board';
+
 import {
     applyMoveForPlayer,
     getValidMovesForPlayer,
     getDifficultyDepth,
     findBestMoveForPlayer,
+    getStartGame,
+    countItemsOnBoard,
+    checkIsGameOver,
 } from '@/helpers/game';
-
 import {
     BLACK,
     Difficulty,
     EMPTY,
     Board,
-    Move,
     Player,
     WHITE,
 } from '@/interfaces/game';
@@ -40,56 +37,41 @@ export function useGame(): UseGame {
     const [whiteCount, setWhiteCount] = useState<number>(2);
     const [blackCount, setBlackCount] = useState<number>(2);
     const [isGameOver, setIsGameOver] = useState<boolean>(false);
-    const [difficulty, setDifficulty] = useState<number>(0);
+    const [difficulty, setDifficulty] = useState<Difficulty>(Difficulty.EASY);
     const [isMoveInProgress, setIsMoveInProgress] = useState<boolean>(false);
 
     const onWhiteMove = useCallback(
-        function (x: number, y: number) {
-            if (currentPlayer === BLACK || isMoveInProgress) {
+        (x: number, y: number) => {
+            if (currentPlayer !== WHITE || isMoveInProgress) {
+                return;
+            }
+            if (board[x][y] !== EMPTY) {
                 return;
             }
 
-            const field = board[x][y];
-            if (field !== EMPTY) {
-                return;
-            }
-
-            let validMoves: Move[] = getValidMovesForPlayer(board, WHITE);
+            const validMoves = getValidMovesForPlayer(board, WHITE).filter(
+                (move) => move.x === x && move.y === y,
+            );
 
             if (validMoves.length === 0) {
+                return;
+            }
+
+            const newBoard = applyMoveForPlayer(board, WHITE, { x, y });
+            const newBlackValidMoves = getValidMovesForPlayer(newBoard, BLACK);
+
+            setBoard(newBoard);
+
+            if (newBlackValidMoves.length > 0) {
                 setIsMoveInProgress(true);
                 setCurrentPlayer(BLACK);
-                return;
             }
-
-            validMoves = validMoves.filter(function (item: Move) {
-                return item.x === x && item.y === y;
-            });
-
-            if (validMoves.length === 0) {
-                return;
-            }
-
-            setBoard(() => {
-                const newBoard = applyMoveForPlayer(board, WHITE, { x, y });
-                const newBlackValidMoves = getValidMovesForPlayer(
-                    newBoard,
-                    BLACK,
-                );
-
-                if (newBlackValidMoves.length > 0) {
-                    setIsMoveInProgress(true);
-                    setCurrentPlayer(BLACK);
-                }
-
-                return newBoard;
-            });
         },
         [board, currentPlayer, isMoveInProgress],
     );
 
     useEffect(() => {
-        if (currentPlayer === WHITE) {
+        if (currentPlayer !== BLACK) {
             return;
         }
 
@@ -101,11 +83,15 @@ export function useGame(): UseGame {
             return;
         }
 
-        setTimeout(async function () {
-            let blackMove: Move | null = await findBestMoveForPlayer(
+        const timeoutId = setTimeout(async () => {
+            const numberOfMoves =
+                countItemsOnBoard(board, WHITE) +
+                countItemsOnBoard(board, BLACK);
+
+            let blackMove = await findBestMoveForPlayer(
                 board,
                 BLACK,
-                getDifficultyDepth(difficulty, whiteCount + blackCount),
+                getDifficultyDepth(difficulty, numberOfMoves),
                 difficulty,
             );
 
@@ -115,18 +101,21 @@ export function useGame(): UseGame {
                         Math.floor(Math.random() * blackValidMoves.length)
                     ];
             }
-            setBoard((prevBoard: Board): Board => {
-                const newBoard: Board = applyMoveForPlayer(
+
+            setBoard((prevBoard) => {
+                const newBoard = applyMoveForPlayer(
                     prevBoard,
                     BLACK,
-                    blackMove,
+                    blackMove!,
                 );
                 setCurrentPlayer(WHITE);
                 setIsMoveInProgress(false);
                 return newBoard;
             });
         }, 100);
-    }, [board, currentPlayer, difficulty, blackCount, whiteCount]);
+
+        return () => clearTimeout(timeoutId);
+    }, [board, currentPlayer, difficulty]);
 
     useEffect(() => {
         setWhiteCount(countItemsOnBoard(board, WHITE));
@@ -140,6 +129,7 @@ export function useGame(): UseGame {
         setCurrentPlayer(WHITE);
         setWhiteCount(2);
         setBlackCount(2);
+        setIsMoveInProgress(false);
     }
 
     return {
