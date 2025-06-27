@@ -1,0 +1,12 @@
+{
+    "extends": "./tsconfig.app.json",
+    "compilerOptions": {
+        "lib": ["ESNext"],
+        "types": [],
+        "jsx": "preserve",
+        "noEmit": true,
+        "module": "ESNext",
+        "moduleResolution": "Node"
+    },
+    "include": ["src/**/*.worker.ts"]
+}

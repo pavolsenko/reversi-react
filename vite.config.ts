@@ -7,6 +7,12 @@ import { configDefaults } from 'vitest/config';
 
 export default defineConfig({
     plugins: [react(), tsconfigPaths(), EnvironmentPlugin('all')],
+    build: {
+        target: 'esnext',
+    },
+    worker: {
+        format: 'es',
+    },
     resolve: {
         alias: {
             '@': path.resolve(__dirname, './src'),
