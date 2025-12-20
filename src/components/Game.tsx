@@ -77,7 +77,10 @@ export function Game() {
                             difficulty={difficulty}
                             onDifficultyChange={onDifficultyChange}
                             onResetClick={resetGame}
-                            isMoveInProgress={isMoveInProgress}
+                            isResetDisabled={
+                                isMoveInProgress ||
+                                whiteCount + blackCount === 4
+                            }
                         />
                     </CardActions>
                 </Card>

@@ -19,7 +19,7 @@ interface GameSettingsProps {
         difficulty: Difficulty,
     ) => void;
     onResetClick: () => void;
-    isMoveInProgress: boolean;
+    isResetDisabled: boolean;
 }
 
 export function GameSettings(props: GameSettingsProps) {
@@ -32,7 +32,7 @@ export function GameSettings(props: GameSettingsProps) {
                     onClick={props.onResetClick}
                     variant={'outlined'}
                     size={'medium'}
-                    disabled={props.isMoveInProgress}
+                    disabled={props.isResetDisabled}
                 >
                     Reset game
                 </Button>
@@ -43,7 +43,7 @@ export function GameSettings(props: GameSettingsProps) {
                 onChange={props.onDifficultyChange}
                 size={'small'}
                 color={'primary'}
-                disabled={props.isMoveInProgress}
+                disabled={props.isResetDisabled}
             >
                 <ToggleButton value={Difficulty.EASY}>Easy</ToggleButton>
                 <ToggleButton value={Difficulty.MEDIUM}>Medium</ToggleButton>

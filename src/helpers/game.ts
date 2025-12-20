@@ -73,7 +73,10 @@ export function applyMoveForPlayer(
             if (current === opponent) {
                 toFlip.push([x, y]);
             } else if (current === player) {
-                toFlip.forEach(([fx, fy]) => (newBoard[fx][fy] = player));
+                toFlip.forEach(
+                    ([fx, fy]: [number, number]): Player =>
+                        (newBoard[fx][fy] = player),
+                );
                 break;
             } else {
                 break;
@@ -92,12 +95,20 @@ export function orderMoves(
     player: Player,
     difficulty: Difficulty,
 ): Move[] {
-    const isCorner = (move: Move): boolean =>
-        CORNERS.some((c: Move): boolean => c.x === move.x && c.y === move.y);
+    function isCorner(move: Move): boolean {
+        return CORNERS.some(
+            (corner: Move): boolean =>
+                corner.x === move.x && corner.y === move.y,
+        );
+    }
 
     return moves.sort((a: Move, b: Move): number => {
-        if (isCorner(a)) return -1;
-        if (isCorner(b)) return 1;
+        if (isCorner(a)) {
+            return -1;
+        }
+        if (isCorner(b)) {
+            return 1;
+        }
 
         const evalFn =
             difficulty === Difficulty.HARD
