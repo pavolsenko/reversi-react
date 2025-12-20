@@ -28,3 +28,21 @@ export const BOARD_WEIGHTS: number[][] = [
     [-20, -50, -2, -2, -2, -2, -50, -20],
     [100, -20, 10, 5, 5, 10, -20, 100],
 ];
+
+export const X_SQUARES: Move[] = [
+    { x: 1, y: 1 },
+    { x: 1, y: 6 },
+    { x: 6, y: 1 },
+    { x: 6, y: 6 },
+];
+
+export const C_SQUARES: Move[] = [
+    { x: 0, y: 1 },
+    { x: 0, y: 6 },
+    { x: 1, y: 0 },
+    { x: 1, y: 7 },
+    { x: 6, y: 0 },
+    { x: 6, y: 7 },
+    { x: 7, y: 1 },
+    { x: 7, y: 6 },
+];

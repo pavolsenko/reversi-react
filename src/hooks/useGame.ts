@@ -7,7 +7,7 @@ import {
     findBestMoveForPlayer,
     getStartGame,
     countItemsOnBoard,
-    checkIsGameOver,
+    isGameOver as checkIsGameOver,
 } from '@/helpers/game';
 import {
     BLACK,
@@ -120,6 +120,9 @@ export function useGame(): UseGame {
     useEffect(() => {
         setWhiteCount(countItemsOnBoard(board, WHITE));
         setBlackCount(countItemsOnBoard(board, BLACK));
+    }, [board]);
+
+    useEffect(() => {
         setIsGameOver(checkIsGameOver(board));
     }, [board]);
 

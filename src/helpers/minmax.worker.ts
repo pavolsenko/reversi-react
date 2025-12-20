@@ -1,11 +1,11 @@
 import { MinMaxWorkerData, MinMaxWorkerResult } from '@/interfaces/game';
-import { minmax } from '@/helpers/game';
+import { negamax } from '@/helpers/game';
 
 onmessage = (event: MessageEvent<MinMaxWorkerData>) => {
     const { board, depth, player, alpha, beta } = event.data;
 
     try {
-        const score = minmax(board, depth, player, alpha, beta);
+        const score = negamax(board, depth, alpha, beta, player);
         const result: MinMaxWorkerResult = { score };
         postMessage(result);
     } catch (err) {

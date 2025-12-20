@@ -1,4 +1,10 @@
-import { BOARD_WEIGHTS, CORNERS, DIRECTIONS } from '@/constants/game';
+import {
+    BOARD_WEIGHTS,
+    C_SQUARES,
+    CORNERS,
+    DIRECTIONS,
+    X_SQUARES,
+} from '@/constants/game';
 import {
     BLACK,
     Board,
@@ -88,6 +94,9 @@ export function applyMoveForPlayer(
 
     return newBoard;
 }
+function isCorner(move: Move): boolean {
+    return CORNERS.some((corner) => corner.x === move.x && corner.y === move.y);
+}
 
 export function orderMoves(
     moves: Move[],
@@ -95,112 +104,220 @@ export function orderMoves(
     player: Player,
     difficulty: Difficulty,
 ): Move[] {
-    function isCorner(move: Move): boolean {
-        return CORNERS.some(
-            (corner: Move): boolean =>
-                corner.x === move.x && corner.y === move.y,
-        );
+    if (moves.length <= 1) return moves;
+
+    const evalFn =
+        difficulty === Difficulty.HARD ? evaluateBoardAdvanced : evaluateBoard;
+
+    const opponent = getOpponent(player);
+
+    return moves
+        .map((move) => {
+            const isCornerMove = isCorner(move) ? 1 : 0;
+
+            const newBoard = applyMoveForPlayer(board, player, move);
+            const myMobility = getValidMovesForPlayer(newBoard, player).length;
+            const oppMobility = getValidMovesForPlayer(
+                newBoard,
+                opponent,
+            ).length;
+            const mobilityDiff = myMobility - oppMobility;
+
+            const evalScore = evalFn(newBoard, player);
+
+            const score =
+                isCornerMove * 100000 + evalScore * 10 + mobilityDiff * 5;
+
+            return { move, score };
+        })
+        .sort((a, b) => b.score - a.score)
+        .map((entry) => entry.move);
+}
+
+enum TTFlag {
+    EXACT,
+    LOWERBOUND,
+    UPPERBOUND,
+}
+
+type TTEntry = {
+    value: number;
+    depth: number;
+    flag: TTFlag;
+};
+
+const transpositionTable = new Map<string, TTEntry>();
+
+function ttKey(board: Board, player: Player): string {
+    let hash = 0;
+    for (let x = 0; x < 8; x++) {
+        for (let y = 0; y < 8; y++) {
+            hash *= 3;
+            const field = board[x][y];
+            if (field === BLACK) {
+                hash += 1;
+            } else if (field === WHITE) {
+                hash += 2;
+            }
+        }
     }
 
-    return moves.sort((a: Move, b: Move): number => {
-        if (isCorner(a)) {
-            return -1;
-        }
-        if (isCorner(b)) {
-            return 1;
-        }
-
-        const evalFn =
-            difficulty === Difficulty.HARD
-                ? evaluateBoardAdvanced
-                : evaluateBoard;
-        const scoreA = evalFn(applyMoveForPlayer(board, player, a), player);
-        const scoreB = evalFn(applyMoveForPlayer(board, player, b), player);
-
-        return scoreB - scoreA;
-    });
+    return `${hash}_${player}`;
 }
 
-const transpositionTable = new Map<string, number>();
-
-function serializeBoard(board: Board): string {
-    return board.flat().join('');
-}
-
-export function minmax(
+function ttLookup(
     board: Board,
-    depth: number,
     player: Player,
+    depth: number,
     alpha: number,
     beta: number,
+): number | null {
+    const key = ttKey(board, player);
+    const entry = transpositionTable.get(key);
+    if (!entry || entry.depth < depth) return null;
+
+    const { value, flag } = entry;
+
+    if (flag === TTFlag.EXACT) {
+        return value;
+    }
+    if (flag === TTFlag.LOWERBOUND && value >= beta) {
+        return value;
+    }
+    if (flag === TTFlag.UPPERBOUND && value <= alpha) {
+        return value;
+    }
+
+    return null;
+}
+
+function ttStore(
+    board: Board,
+    player: Player,
+    depth: number,
+    value: number,
+    alphaOrig: number,
+    beta: number,
+): void {
+    const key = ttKey(board, player);
+
+    let flag: TTFlag;
+    if (value <= alphaOrig) flag = TTFlag.UPPERBOUND;
+    else if (value >= beta) flag = TTFlag.LOWERBOUND;
+    else flag = TTFlag.EXACT;
+
+    const existing = transpositionTable.get(key);
+    if (!existing || existing.depth <= depth) {
+        transpositionTable.set(key, { value, depth, flag });
+    }
+}
+
+export function negamax(
+    board: Board,
+    depth: number,
+    alpha: number,
+    beta: number,
+    player: Player,
 ): number {
-    const key = serializeBoard(board) + player;
-    if (transpositionTable.has(key)) {
-        return transpositionTable.get(key)!;
+    const alphaOrig = alpha;
+
+    const cached = ttLookup(board, player, depth, alpha, beta);
+    if (cached !== null) {
+        return cached;
     }
 
-    const validMoves = getValidMovesForPlayer(board, player);
-    if (depth === 0 || validMoves.length === 0) {
-        return quiescenceSearch(board, player, alpha, beta);
+    if (depth === 0 || isGameOver(board)) {
+        const standPat = quiescenceSearch(board, player, alpha, beta);
+        ttStore(board, player, depth, standPat, alphaOrig, beta);
+        return standPat;
     }
 
+    const moves = getValidMovesForPlayer(board, player);
     const opponent = getOpponent(player);
-    let bestEval = player === BLACK ? -Infinity : Infinity;
 
-    for (const move of validMoves) {
+    if (moves.length === 0) {
+        const val = -negamax(board, depth - 1, -beta, -alpha, opponent);
+        ttStore(board, player, depth, val, alphaOrig, beta);
+        return val;
+    }
+
+    let value = -Infinity;
+
+    for (const move of moves) {
         const newBoard = applyMoveForPlayer(board, player, move);
-        const evalScore = minmax(newBoard, depth - 1, opponent, alpha, beta);
+        const score = -negamax(newBoard, depth - 1, -beta, -alpha, opponent);
 
-        if (player === BLACK) {
-            bestEval = Math.max(bestEval, evalScore);
-            alpha = Math.max(alpha, bestEval);
-        } else {
-            bestEval = Math.min(bestEval, evalScore);
-            beta = Math.min(beta, bestEval);
+        if (score > value) {
+            value = score;
         }
-
-        if (beta <= alpha) break;
+        if (score > alpha) {
+            alpha = score;
+        }
+        if (alpha >= beta) {
+            break;
+        }
     }
 
-    transpositionTable.set(key, bestEval);
-    return bestEval;
+    ttStore(board, player, depth, value, alphaOrig, beta);
+    return value;
 }
 
-function isQuietPosition(board: Board, move: Move, player: Player): boolean {
+function isNoisyMove(board: Board, move: Move, player: Player): boolean {
     const opponent = getOpponent(player);
-    return !DIRECTIONS.some(([dx, dy]) => {
-        const x = move.x + dx;
-        const y = move.y + dy;
-        return x >= 0 && y >= 0 && x < 8 && y < 8 && board[x][y] === opponent;
-    });
-}
 
+    // Flips many discs → noisy.
+    let flips = 0;
+    for (const [dx, dy] of DIRECTIONS) {
+        let x = move.x + dx;
+        let y = move.y + dy;
+        let localFlips = 0;
+
+        while (x >= 0 && y >= 0 && x < 8 && y < 8) {
+            const current = board[x][y];
+
+            if (current === opponent) {
+                localFlips++;
+            } else if (current === player) {
+                flips += localFlips;
+                break;
+            } else {
+                break;
+            }
+
+            x += dx;
+            y += dy;
+        }
+    }
+
+    const isEdge = move.x === 0 || move.x === 7 || move.y === 0 || move.y === 7;
+
+    return isEdge || flips >= 3;
+}
 function quiescenceSearch(
     board: Board,
     player: Player,
     alpha: number,
     beta: number,
 ): number {
-    const evalScore = countItemsOnBoard(board, player);
-    if (evalScore >= beta) {
+    // Use your advanced evaluator: mobility, corners, parity, etc. [web:18][web:21][web:71]
+    const standPat = evaluateBoardAdvanced(board, player);
+
+    if (standPat >= beta) {
         return beta;
     }
-    if (evalScore > alpha) {
-        alpha = evalScore;
+    if (standPat > alpha) {
+        alpha = standPat;
     }
 
-    const noisyMoves: Move[] = getValidMovesForPlayer(board, player).filter(
-        (move: Move): boolean => !isQuietPosition(board, move, player),
-    );
+    const moves = getValidMovesForPlayer(board, player);
+    const opponent = getOpponent(player);
+
+    // Only explore noisy moves to avoid search explosion. [web:65][web:66][web:68]
+    const noisyMoves = moves.filter((move) => isNoisyMove(board, move, player));
 
     for (const move of noisyMoves) {
-        const newBoard: Board = applyMoveForPlayer(board, player, move);
-        const score: number = -quiescenceSearch(
-            newBoard,
-            getOpponent(player),
-            -beta,
-            -alpha,
-        );
+        const newBoard = applyMoveForPlayer(board, player, move);
+        const score = -quiescenceSearch(newBoard, opponent, -beta, -alpha);
 
         if (score >= beta) {
             return beta;
@@ -212,100 +329,101 @@ function quiescenceSearch(
 
     return alpha;
 }
-
-export async function minmaxParallel(
+export async function negamaxParallel(
     board: Board,
     depth: number,
-    player: Player,
     alpha: number,
     beta: number,
+    player: Player,
 ): Promise<number> {
-    const opponent: Player = getOpponent(player);
-    const validMoves: Move[] = getValidMovesForPlayer(board, player);
-    if (depth === 0 || validMoves.length === 0) {
+    if (depth === 0 || isGameOver(board)) {
         return quiescenceSearch(board, player, alpha, beta);
     }
 
-    const promises: Promise<number>[] = validMoves.map(
-        (move: Move): Promise<number> => {
-            const worker = new Worker(
-                new URL('./minmax.worker.ts', import.meta.url),
-                { type: 'module' },
-            );
-            const newBoard: Board = applyMoveForPlayer(board, player, move);
+    const moves = getValidMovesForPlayer(board, player);
+    const opponent = getOpponent(player);
 
-            return new Promise<number>((resolve, reject) => {
-                worker.onmessage = ({
-                    data,
-                }: MessageEvent<MinMaxWorkerResult>) => {
-                    worker.terminate();
+    if (moves.length === 0) {
+        // Pass move
+        return -negamax(board, depth - 1, -beta, -alpha, opponent);
+    }
 
-                    if (!data || typeof data !== 'object') {
-                        return reject(
-                            new Error('Worker returned malformed message'),
-                        );
-                    }
+    const promises = moves.map((move) => {
+        const worker = new Worker(
+            new URL('./minmax.worker.ts', import.meta.url),
+            {
+                type: 'module',
+            },
+        );
+        const newBoard = applyMoveForPlayer(board, player, move);
 
-                    if ('error' in data) {
-                        return reject(new Error(data.error ?? 'Unknown error'));
-                    }
+        return new Promise<number>((resolve, reject) => {
+            worker.onmessage = ({ data }: MessageEvent<MinMaxWorkerResult>) => {
+                worker.terminate();
 
-                    if (typeof data.score !== 'number') {
-                        return reject(
-                            new Error(
-                                'Missing or invalid score in worker result',
-                            ),
-                        );
-                    }
+                if (!data || typeof data !== 'object') {
+                    return reject(
+                        new Error('Worker returned malformed message'),
+                    );
+                }
+                if ('error' in data) {
+                    return reject(new Error(data.error ?? 'Unknown error'));
+                }
+                if (typeof data.score !== 'number') {
+                    return reject(
+                        new Error('Missing or invalid score in worker result'),
+                    );
+                }
 
-                    resolve(data.score);
-                };
+                // Worker runs negamax from opponent's perspective; flip sign. [web:49][web:52]
+                resolve(-data.score);
+            };
 
-                worker.onerror = (err) => {
-                    worker.terminate();
-                    reject(new Error(`Worker crashed: ${err.message}`));
-                };
+            worker.onerror = (err) => {
+                worker.terminate();
+                reject(new Error(`Worker crashed: ${err.message}`));
+            };
 
-                worker.postMessage({
-                    board: newBoard,
-                    depth: depth - 1,
-                    player: opponent,
-                    alpha,
-                    beta,
-                });
+            worker.postMessage({
+                board: newBoard,
+                depth: depth - 1,
+                player: opponent,
+                alpha: -beta,
+                beta: -alpha,
             });
-        },
-    );
+        });
+    });
 
-    const scores: number[] = await Promise.all(promises);
-    return player === BLACK ? Math.max(...scores) : Math.min(...scores);
+    const scores = await Promise.all(promises);
+    return Math.max(...scores);
 }
-
 export async function findBestMoveForPlayer(
     board: Board,
     player: Player,
     depth: number,
     difficulty: Difficulty,
 ): Promise<Move | null> {
-    const opponent: Player = getOpponent(player);
-    const orderedMoves: Move[] = orderMoves(
+    const opponent = getOpponent(player);
+    const orderedMoves = orderMoves(
         getValidMovesForPlayer(board, player),
         board,
         player,
         difficulty,
     );
+    if (orderedMoves.length === 0) return null;
+
     let bestMove: Move | null = null;
-    let bestScore: number = -Infinity;
+    let bestScore = -Infinity;
 
     for (const move of orderedMoves) {
-        const newBoard: Board = applyMoveForPlayer(board, player, move);
-        const score: number = -(await minmaxParallel(
+        const newBoard = applyMoveForPlayer(board, player, move);
+        const score = await negamaxParallel(
             newBoard,
             depth - 1,
-            opponent,
             -Infinity,
             Infinity,
-        ));
+            opponent,
+        );
 
         if (score > bestScore) {
             bestScore = score;
@@ -348,10 +466,12 @@ export function getStartGame(): Board {
     return board;
 }
 
-export function checkIsGameOver(board: Board): boolean {
-    const totalPieces =
+export function isGameOver(board: Board): boolean {
+    const totalPieces: number =
         countItemsOnBoard(board, WHITE) + countItemsOnBoard(board, BLACK);
-    if (totalPieces === 64) return true;
+    if (totalPieces === 64) {
+        return true;
+    }
 
     const whiteMoves: Move[] = getValidMovesForPlayer(board, WHITE);
     const blackMoves: Move[] = getValidMovesForPlayer(board, BLACK);
@@ -381,8 +501,8 @@ export function evaluateBoard(board: Board, player: Player): number {
 }
 
 export function evaluateBoardAdvanced(board: Board, player: Player): number {
-    const opponent: Player = getOpponent(player);
-    let score = 0;
+    const opponent = getOpponent(player);
+    let positional = 0;
     let playerDiscs = 0;
     let opponentDiscs = 0;
     let playerCorners = 0;
@@ -391,32 +511,62 @@ export function evaluateBoardAdvanced(board: Board, player: Player): number {
     for (let x = 0; x < 8; x++) {
         for (let y = 0; y < 8; y++) {
             const type = board[x][y];
+
             if (type === player) {
-                score += BOARD_WEIGHTS[x][y];
+                positional += BOARD_WEIGHTS[x][y];
                 playerDiscs++;
             } else if (type === opponent) {
-                score -= BOARD_WEIGHTS[x][y];
+                positional -= BOARD_WEIGHTS[x][y];
                 opponentDiscs++;
             }
         }
     }
 
+    const totalDiscs = playerDiscs + opponentDiscs;
+    const empties = 64 - totalDiscs;
+
     for (const corner of CORNERS) {
-        const field: Field = board[corner.x][corner.y];
-        if (field === player) {
-            playerCorners++;
-        } else if (field === opponent) {
-            opponentCorners++;
-        }
+        const field = board[corner.x][corner.y];
+        if (field === player) playerCorners++;
+        else if (field === opponent) opponentCorners++;
+    }
+    const cornerScore = 100 * (playerCorners - opponentCorners);
+
+    const parity =
+        totalDiscs === 0
+            ? 0
+            : (100 * (playerDiscs - opponentDiscs)) / totalDiscs;
+
+    const myMoves = getValidMovesForPlayer(board, player).length;
+    const oppMoves = getValidMovesForPlayer(board, opponent).length;
+    const totalMoves = myMoves + oppMoves;
+    const mobility =
+        totalMoves === 0 ? 0 : (100 * (myMoves - oppMoves)) / totalMoves;
+
+    let xcScore = 0;
+    const earlyMidFactor = empties > 20 ? 1 : 0.4; // reduce penalties near endgame
+
+    for (const sq of X_SQUARES) {
+        const field = board[sq.x][sq.y];
+        if (field === player) xcScore -= 150 * earlyMidFactor;
+        else if (field === opponent) xcScore += 150 * earlyMidFactor;
     }
 
-    const parity: number =
-        (100 * (playerDiscs - opponentDiscs)) /
-        (playerDiscs + opponentDiscs + 1);
-    const cornerScore: number = 100 * (playerCorners - opponentCorners);
-    const mobility: number =
-        getValidMovesForPlayer(board, player).length -
-        getValidMovesForPlayer(board, opponent).length;
+    for (const sq of C_SQUARES) {
+        const field = board[sq.x][sq.y];
+        if (field === player) xcScore -= 60 * earlyMidFactor;
+        else if (field === opponent) xcScore += 60 * earlyMidFactor;
+    }
 
-    return score + parity + cornerScore * 5 + mobility * 10;
+    let score = positional + cornerScore * 5 + mobility * 2 + xcScore;
+
+    if (empties <= 16) {
+        score += parity * 4;
+    } else if (empties <= 32) {
+        score += parity * 1.5 + mobility;
+    } else {
+        score += mobility * 2;
+    }
+
+    return score;
 }

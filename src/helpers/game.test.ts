@@ -4,7 +4,7 @@ import {
     getStartGame,
     getValidMovesForPlayer,
     isValidMove,
-    minmax,
+    negamax,
     orderMoves,
 } from '@/helpers/game';
 import { BLACK, WHITE, Move, Difficulty } from '@/interfaces/game';
@@ -67,7 +67,7 @@ describe('game.helper:', () => {
     describe('minmax', () => {
         it('returns a numerical score', () => {
             const board = getStartGame();
-            const score = minmax(board, 1, BLACK, -Infinity, Infinity);
+            const score = negamax(board, 1, -Infinity, Infinity, BLACK);
             expect(typeof score).toBe('number');
         });
 
@@ -77,13 +77,13 @@ describe('game.helper:', () => {
                 x: 2,
                 y: 3,
             });
-            const originalScore = minmax(board, 1, BLACK, -Infinity, Infinity);
-            const strongerScore = minmax(
+            const originalScore = negamax(board, 1, -Infinity, Infinity, BLACK);
+            const strongerScore = negamax(
                 strongerBoard,
                 1,
-                BLACK,
                 -Infinity,
                 Infinity,
+                BLACK,
             );
             expect(strongerScore).toBeGreaterThanOrEqual(originalScore);
         });
