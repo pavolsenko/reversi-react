@@ -6,6 +6,15 @@ import {
     X_SQUARES,
 } from '@/constants/game';
 import {
+    countItemsOnBoard,
+    getValidMovesForPlayer,
+    isCorner,
+} from '@/helpers/board';
+import {
+    transpositionTableLookup,
+    transpositionTableStore,
+} from '@/helpers/transpositionTable';
+import {
     BLACK,
     Board,
     Difficulty,
@@ -17,47 +26,8 @@ import {
     WHITE,
 } from '@/interfaces/game';
 
-function getOpponent(player: Player): Player {
+export function getOpponent(player: Player): Player {
     return player === BLACK ? WHITE : BLACK;
-}
-
-export function isValidMove(board: Board, move: Move, player: Player): boolean {
-    if (board[move.x][move.y] !== EMPTY) {
-        return false;
-    }
-
-    const opponent = getOpponent(player);
-    for (const [dx, dy] of DIRECTIONS) {
-        let x: number = move.x + dx;
-        let y: number = move.y + dy;
-        let seenOpponent: boolean = false;
-
-        while (x >= 0 && y >= 0 && x < 8 && y < 8) {
-            const current = board[x][y];
-            if (current === opponent) {
-                seenOpponent = true;
-            } else if (current === player && seenOpponent) {
-                return true;
-            } else {
-                break;
-            }
-            x += dx;
-            y += dy;
-        }
-    }
-    return false;
-}
-
-export function getValidMovesForPlayer(board: Board, player: Player): Move[] {
-    const moves: Move[] = [];
-    for (let x = 0; x < 8; x++) {
-        for (let y = 0; y < 8; y++) {
-            if (isValidMove(board, { x, y }, player)) {
-                moves.push({ x, y });
-            }
-        }
-    }
-    return moves;
 }
 
 export function applyMoveForPlayer(
@@ -93,9 +63,6 @@ export function applyMoveForPlayer(
     }
 
     return newBoard;
-}
-function isCorner(move: Move): boolean {
-    return CORNERS.some((corner) => corner.x === move.x && corner.y === move.y);
 }
 
 export function orderMoves(
@@ -134,84 +101,6 @@ export function orderMoves(
         .map((entry) => entry.move);
 }
 
-enum TTFlag {
-    EXACT,
-    LOWERBOUND,
-    UPPERBOUND,
-}
-
-type TTEntry = {
-    value: number;
-    depth: number;
-    flag: TTFlag;
-};
-
-const transpositionTable = new Map<string, TTEntry>();
-
-function ttKey(board: Board, player: Player): string {
-    let hash = 0;
-    for (let x = 0; x < 8; x++) {
-        for (let y = 0; y < 8; y++) {
-            hash *= 3;
-            const field = board[x][y];
-            if (field === BLACK) {
-                hash += 1;
-            } else if (field === WHITE) {
-                hash += 2;
-            }
-        }
-    }
-
-    return `${hash}_${player}`;
-}
-
-function ttLookup(
-    board: Board,
-    player: Player,
-    depth: number,
-    alpha: number,
-    beta: number,
-): number | null {
-    const key = ttKey(board, player);
-    const entry = transpositionTable.get(key);
-    if (!entry || entry.depth < depth) return null;
-
-    const { value, flag } = entry;
-
-    if (flag === TTFlag.EXACT) {
-        return value;
-    }
-    if (flag === TTFlag.LOWERBOUND && value >= beta) {
-        return value;
-    }
-    if (flag === TTFlag.UPPERBOUND && value <= alpha) {
-        return value;
-    }
-
-    return null;
-}
-
-function ttStore(
-    board: Board,
-    player: Player,
-    depth: number,
-    value: number,
-    alphaOrig: number,
-    beta: number,
-): void {
-    const key = ttKey(board, player);
-
-    let flag: TTFlag;
-    if (value <= alphaOrig) flag = TTFlag.UPPERBOUND;
-    else if (value >= beta) flag = TTFlag.LOWERBOUND;
-    else flag = TTFlag.EXACT;
-
-    const existing = transpositionTable.get(key);
-    if (!existing || existing.depth <= depth) {
-        transpositionTable.set(key, { value, depth, flag });
-    }
-}
-
 export function negamax(
     board: Board,
     depth: number,
@@ -221,14 +110,21 @@ export function negamax(
 ): number {
     const alphaOrig = alpha;
 
-    const cached = ttLookup(board, player, depth, alpha, beta);
+    const cached = transpositionTableLookup(board, player, depth, alpha, beta);
     if (cached !== null) {
         return cached;
     }
 
     if (depth === 0 || isGameOver(board)) {
         const standPat = quiescenceSearch(board, player, alpha, beta);
-        ttStore(board, player, depth, standPat, alphaOrig, beta);
+        transpositionTableStore(
+            board,
+            player,
+            depth,
+            standPat,
+            alphaOrig,
+            beta,
+        );
         return standPat;
     }
 
@@ -237,7 +133,7 @@ export function negamax(
 
     if (moves.length === 0) {
         const val = -negamax(board, depth - 1, -beta, -alpha, opponent);
-        ttStore(board, player, depth, val, alphaOrig, beta);
+        transpositionTableStore(board, player, depth, val, alphaOrig, beta);
         return val;
     }
 
@@ -258,14 +154,13 @@ export function negamax(
         }
     }
 
-    ttStore(board, player, depth, value, alphaOrig, beta);
+    transpositionTableStore(board, player, depth, value, alphaOrig, beta);
     return value;
 }
 
 function isNoisyMove(board: Board, move: Move, player: Player): boolean {
     const opponent = getOpponent(player);
 
-    // Flips many discs → noisy.
     let flips = 0;
     for (const [dx, dy] of DIRECTIONS) {
         let x = move.x + dx;
@@ -293,13 +188,13 @@ function isNoisyMove(board: Board, move: Move, player: Player): boolean {
 
     return isEdge || flips >= 3;
 }
+
 function quiescenceSearch(
     board: Board,
     player: Player,
     alpha: number,
     beta: number,
 ): number {
-    // Use your advanced evaluator: mobility, corners, parity, etc. [web:18][web:21][web:71]
     const standPat = evaluateBoardAdvanced(board, player);
 
     if (standPat >= beta) {
@@ -312,7 +207,6 @@ function quiescenceSearch(
     const moves = getValidMovesForPlayer(board, player);
     const opponent = getOpponent(player);
 
-    // Only explore noisy moves to avoid search explosion. [web:65][web:66][web:68]
     const noisyMoves = moves.filter((move) => isNoisyMove(board, move, player));
 
     for (const move of noisyMoves) {
@@ -329,6 +223,7 @@ function quiescenceSearch(
 
     return alpha;
 }
+
 export async function negamaxParallel(
     board: Board,
     depth: number,
@@ -344,7 +239,6 @@ export async function negamaxParallel(
     const opponent = getOpponent(player);
 
     if (moves.length === 0) {
-        // Pass move
         return -negamax(board, depth - 1, -beta, -alpha, opponent);
     }
 
@@ -375,7 +269,6 @@ export async function negamaxParallel(
                     );
                 }
 
-                // Worker runs negamax from opponent's perspective; flip sign. [web:49][web:52]
                 resolve(-data.score);
             };
 
@@ -397,6 +290,7 @@ export async function negamaxParallel(
     const scores = await Promise.all(promises);
     return Math.max(...scores);
 }
+
 export async function findBestMoveForPlayer(
     board: Board,
     player: Player,
@@ -410,7 +304,9 @@ export async function findBestMoveForPlayer(
         player,
         difficulty,
     );
-    if (orderedMoves.length === 0) return null;
+    if (orderedMoves.length === 0) {
+        return null;
+    }
 
     let bestMove: Move | null = null;
     let bestScore = -Infinity;
@@ -457,15 +353,6 @@ export function getDifficultyDepth(
     return mapping[difficulty][stage] + dynamicBoost;
 }
 
-export function getStartGame(): Board {
-    const board: Board = Array.from({ length: 8 }, () => Array(8).fill(EMPTY));
-    board[3][3] = WHITE;
-    board[3][4] = BLACK;
-    board[4][3] = BLACK;
-    board[4][4] = WHITE;
-    return board;
-}
-
 export function isGameOver(board: Board): boolean {
     const totalPieces: number =
         countItemsOnBoard(board, WHITE) + countItemsOnBoard(board, BLACK);
@@ -476,15 +363,6 @@ export function isGameOver(board: Board): boolean {
     const whiteMoves: Move[] = getValidMovesForPlayer(board, WHITE);
     const blackMoves: Move[] = getValidMovesForPlayer(board, BLACK);
     return whiteMoves.length === 0 && blackMoves.length === 0;
-}
-
-export function countItemsOnBoard(board: Board, player: Player): number {
-    return board.reduce(
-        (total: number, row: Field[]): number =>
-            total +
-            row.filter((field: Field): boolean => field === player).length,
-        0,
-    );
 }
 
 export function evaluateBoard(board: Board, player: Player): number {

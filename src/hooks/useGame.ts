@@ -1,12 +1,14 @@
+import {
+    countItemsOnBoard,
+    getStartGame,
+    getValidMovesForPlayer,
+} from '@/helpers/board';
 import { useCallback, useEffect, useState } from 'react';
 
 import {
     applyMoveForPlayer,
-    getValidMovesForPlayer,
     getDifficultyDepth,
     findBestMoveForPlayer,
-    getStartGame,
-    countItemsOnBoard,
     isGameOver as checkIsGameOver,
 } from '@/helpers/game';
 import {
